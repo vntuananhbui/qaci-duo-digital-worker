@@ -1,0 +1,110 @@
+{
+  "format": "qaci-duo.catalog",
+  "version": 1,
+  "teams": [
+    {
+      "slug": "adlc",
+      "name": "ADLC",
+      "summary": "1 bot làm hết: PM, Tech Lead, Engineer và Deployer gộp chung. Giao việc, nó tự lập kế hoạch, tự code, tự kiểm, tự đưa lên GitHub/Azure DevOps và deploy demo.",
+      "category": "Software",
+      "setupMinutes": 10,
+      "package": "packages/adlc.json",
+      "manifest": "teams/adlc/team.mausteam.json",
+      "readme": "teams/adlc/README.md",
+      "members": 1,
+      "skills": [
+        "teams/adlc/skills/adlc-triage/SKILL.md",
+        "teams/adlc/skills/adlc-feature/SKILL.md",
+        "teams/adlc/skills/adlc-bugfix/SKILL.md",
+        "teams/adlc/skills/adlc-research/SKILL.md",
+        "teams/adlc/skills/adlc-chore/SKILL.md",
+        "teams/adlc/skills/adlc-approval/SKILL.md",
+        "teams/adlc/skills/adlc-report/SKILL.md",
+        "teams/adlc/skills/adlc-paper-prototype/SKILL.md",
+        "teams/adlc/skills/adlc-git-local/SKILL.md",
+        "teams/adlc/skills/adlc-code-review/SKILL.md",
+        "teams/adlc/skills/adlc-verify-browser/SKILL.md",
+        "teams/adlc/skills/adlc-ui-preview/SKILL.md",
+        "teams/adlc/skills/deploy-github/SKILL.md",
+        "teams/adlc/skills/deploy-azure-devops/SKILL.md",
+        "teams/adlc/skills/deploy-render/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "GitHub",
+          "Render"
+        ]
+      }
+    },
+    {
+      "slug": "experiment-designer",
+      "name": "Experiment Designer",
+      "summary": "Give it a survey's gaps, get runnable experiment designs with fixed success criteria — published as one visual HTML report.",
+      "category": "Research",
+      "setupMinutes": 5,
+      "package": "packages/experiment-designer.json",
+      "manifest": "teams/experiment-designer/team.mausteam.json",
+      "readme": "teams/experiment-designer/README.md",
+      "members": 1,
+      "skills": [
+        "teams/experiment-designer/skills/design-experiments/SKILL.md"
+      ],
+      "requires": {
+        "apps": []
+      }
+    },
+    {
+      "slug": "experiment-runner",
+      "name": "Experiment Runner",
+      "summary": "Give it DESIGN.md, get back real results — it codes and executes each experiment like a normal coding agent, never a simulated or estimated number.",
+      "category": "Research",
+      "setupMinutes": 10,
+      "package": "packages/experiment-runner.json",
+      "manifest": "teams/experiment-runner/team.mausteam.json",
+      "readme": "teams/experiment-runner/README.md",
+      "members": 1,
+      "skills": [
+        "teams/experiment-runner/skills/run-experiment/SKILL.md"
+      ],
+      "requires": {
+        "apps": []
+      }
+    },
+    {
+      "slug": "experiment-validator",
+      "name": "Experiment Validator",
+      "summary": "Give it a design and its results, get an independent verdict — checked against the original criteria and raw evidence, never a summary.",
+      "category": "Research",
+      "setupMinutes": 5,
+      "package": "packages/experiment-validator.json",
+      "manifest": "teams/experiment-validator/team.mausteam.json",
+      "readme": "teams/experiment-validator/README.md",
+      "members": 1,
+      "skills": [
+        "teams/experiment-validator/skills/validate-results/SKILL.md"
+      ],
+      "requires": {
+        "apps": []
+      }
+    },
+    {
+      "slug": "literature-surveyor",
+      "name": "Literature Surveyor",
+      "summary": "Give it a topic, get a cited literature survey with explicit gaps — searched and read for real through Exa, never guessed from a title.",
+      "category": "Research",
+      "setupMinutes": 5,
+      "package": "packages/literature-surveyor.json",
+      "manifest": "teams/literature-surveyor/team.mausteam.json",
+      "readme": "teams/literature-surveyor/README.md",
+      "members": 1,
+      "skills": [
+        "teams/literature-surveyor/skills/survey-literature/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Exa"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Literature Surveyor",
+    "description": "Give it a topic, get a cited literature survey with explicit gaps — searched and read for real through Exa, never guessed from a title.",
+    "members": [
+      {
+        "key": "surveyor",
+        "name": "Surveyor",
+        "title": "Surveyor",
+        "description": "Receives a research topic, searches real literature through the Exa app connection, and writes a cited survey with explicit gaps.",
+        "appearance": {
+          "color": "blue"
+        }
+      }
+    ],
+    "room": {
+      "name": "Literature Surveyor",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "surveyor"
+      }
+    }
+  }
+}

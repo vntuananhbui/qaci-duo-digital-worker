@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "ADLC",
+    "description": "1 bot làm hết: PM, Tech Lead, Engineer và Deployer gộp chung. Giao việc, nó tự lập kế hoạch, tự code, tự kiểm, tự đưa lên GitHub/Azure DevOps và deploy demo.",
+    "members": [
+      {
+        "key": "bot",
+        "name": "ADLC",
+        "title": "ADLC",
+        "description": "Một bot làm hết việc ADLC — nhận task, phân loại, lập kế hoạch, tự code, tự kiểm và merge, đưa code lên GitHub/Azure DevOps và deploy demo khi chủ muốn, báo cáo cuối.",
+        "appearance": {
+          "color": "pink"
+        }
+      }
+    ],
+    "room": {
+      "name": "ADLC",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "bot"
+      }
+    }
+  }
+}

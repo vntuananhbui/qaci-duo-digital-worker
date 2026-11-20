@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Experiment Validator",
+    "description": "Give it a design and its results, get an independent verdict — checked against the original criteria and raw evidence, never a summary.",
+    "members": [
+      {
+        "key": "validator",
+        "name": "Experiment Validator",
+        "title": "Experiment Validator",
+        "description": "Independently re-checks experiment results against the design's own success criteria and the underlying raw evidence, and reports a clear verdict per experiment plus an overall answer to the research question.",
+        "appearance": {
+          "color": "teal"
+        }
+      }
+    ],
+    "room": {
+      "name": "Experiment Validator",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "validator"
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Experiment Runner",
+    "description": "Give it DESIGN.md, get back real results — it codes and executes each experiment like a normal coding agent, never a simulated or estimated number.",
+    "members": [
+      {
+        "key": "runner",
+        "name": "Experiment Runner",
+        "title": "Experiment Runner",
+        "description": "Implements and actually executes every experiment in a design document like a normal coding task, writing one markdown results file per experiment from real captured output.",
+        "appearance": {
+          "color": "orange"
+        }
+      }
+    ],
+    "room": {
+      "name": "Experiment Runner",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "runner"
+      }
+    }
+  }
+}

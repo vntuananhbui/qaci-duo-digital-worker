@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Experiment Designer",
+    "description": "Give it a survey's gaps, get runnable experiment designs with fixed success criteria — published as one visual HTML report.",
+    "members": [
+      {
+        "key": "designer",
+        "name": "Experiment Designer",
+        "title": "Experiment Designer",
+        "description": "Turns a literature survey's gaps and a research question into falsifiable, runnable experiment designs with fixed success criteria, published as one HTML report.",
+        "appearance": {
+          "color": "cyan"
+        }
+      }
+    ],
+    "room": {
+      "name": "Experiment Designer",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "designer"
+      }
+    }
+  }
+}
