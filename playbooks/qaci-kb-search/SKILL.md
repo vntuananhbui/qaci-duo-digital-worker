@@ -56,13 +56,19 @@ stop. Never answer an institute question from memory.
 5. **Before saying "not in the data"**, try a structured `kb_query` / `kb_stats` over the right label, not another
    `kb_search` rephrase.
 6. **Write the answer for a person, not for a database** (see Output):
-   - The answer itself first, in one plain sentence, in the owner's language.
-   - Then a small table only when it adds something (a breakdown, several people).
-   - Human labels, not codes: "Giám đốc viện (`qaci_director`)", "Ban lãnh đạo (`bod`)". Never show internal
-     property names such as `col_name` or raw table names in the answer.
-   - One short source line in plain words, then refs and `lastSync`.
-   - When this conversation gave a different figure earlier, say once which figure is right and why (after checking
-     it, step 4). Do not leave the difference unexplained, and do not dwell on it.
+   - Answer like a colleague who knows the institute: give the information asked for, in the owner's language,
+     and stop. The first sentence is the answer.
+   - **Never put these in the answer:** record refs (`identity.users:7`), table names (`organization.…`), property
+     names (`col_name`, `staffGroup`, `job_title`, `effort_percent`), role codes (`qaci_director`), tool names
+     (`kb_query`, `kb_stats`), Cypher, sync timestamps, "Source:" lines, or how you computed the answer. Keep them
+     for yourself; give them only when the owner asks ("nguồn đâu?", "đếm thế nào?").
+   - Use everyday words: "Giám đốc viện", "ban lãnh đạo", "chức danh", "nhân viên".
+   - A table only for a list of several people or a breakdown, with plain headers (Tên, Chức danh, Đơn vị) and no
+     ID column.
+   - A caveat only when it changes how the answer should be read (several people hold the same role; the staff count
+     leaves out the board), in one short sentence.
+   - If an earlier answer in this conversation was wrong, correct it in one sentence ("Mình sửa lại: …") without
+     explaining your process.
 
 ### Picking the tool
 
@@ -136,15 +142,19 @@ Get one of these wrong and the arithmetic is exactly as wrong as not using `kb_q
 ## Output
 
 ```markdown
-<The answer in one plain sentence, in the owner's language.>
-
-| <human column names> |                    ← only when a breakdown or several people help; exactly the rows returned
-<One line on what is and is not included, e.g. "Không gồm <B> thành viên ban lãnh đạo và <P> project business owner; tổng <T> người.">
-Nguồn: <plain words, e.g. "đếm theo nhóm nhân sự trong dữ liệu viện"> · dữ liệu lúc <lastSync> · ref: <ids>
+<The answer in one or two plain sentences.>
+<Optional: a short list or table with plain headers, only for several people or a breakdown.>
+<Optional: one short caveat, only if it changes how the answer should be read.>
 ```
 
-Example of the tone (staff question): "QACI hiện có **<S> nhân viên** (không gồm <B> thành viên ban lãnh đạo và <P>
-project business owner; tổng cộng <T> người trong hệ thống)."
+**Good** (staff): "QACI hiện có **<S> nhân viên**, chưa tính <B> thành viên ban lãnh đạo và <P> chủ dự án phía
+doanh nghiệp (tổng cộng <T> người)."
+
+**Good** (director): "Trong hệ thống, vai trò Giám đốc viện đang được gán cho 4 người: <A>, <B>, <C> và <D>. Dữ liệu
+không cho biết ai là người đứng đầu chính thức, bạn nên xác nhận lại với bộ phận quản trị."
+
+**Bad:** a table with a `Ref` column of `identity.users:7`, a line "Source: kb_query, Role có col_name =
+qaci_director", a sync timestamp, or a paragraph about how the previous answer was computed.
 
 ## Quality checklist
 
@@ -152,9 +162,10 @@ project business owner; tổng cộng <T> người trong hệ thống)."
 - [ ] `kb_schema` was read before the first `kb_query` in the conversation.
 - [ ] Workload questions exclude `project_manager` rows; status filters check `type` first; counts use typed relationships.
 - [ ] Staff and director questions use `staffGroup` and roles, not every `Person` or `job_title`.
-- [ ] The answer cites `ref`s and `lastSync`, and states every filter applied.
-- [ ] The first sentence answers the question; role and group codes are shown with human labels; no internal property names.
-- [ ] No "not checked" that one more query could have answered; any difference from an earlier figure is explained once.
+- [ ] The answer reads like a colleague's reply: no refs, table or property names, role codes, tool names, Cypher or
+      timestamps unless the owner asked for the source.
+- [ ] The first sentence answers the question; caveats only when they change the meaning.
+- [ ] No "not checked" that one more query could have answered.
 
 ## Guardrails
 
@@ -185,7 +196,8 @@ project business owner; tổng cộng <T> người trong hệ thống)."
    WHERE total > 100
    RETURN name, total, n ORDER BY total DESC
    ```
-3. Report exactly the rows returned, with `ref`s and `lastSync`, and note that project-manager stakes are excluded.
+3. Answer with exactly the people returned and their total effort, in plain words, adding that nominal project-manager
+   stakes are not counted. Keep the refs for a follow-up question about the source.
 
 **Request:** "Ai là giám đốc viện QACI?" (and an earlier answer in the chat named someone by job title)
 
@@ -193,7 +205,7 @@ project business owner; tổng cộng <T> người trong hệ thống)."
 name, role, lab or office, `staffGroup` and `job_title`. Answer: the holders of "Giám đốc viện (`qaci_director`)"; if
 there are several, say the data gives the role to several people and suggest confirming with the portal
 administrator; one line on lab and office directors; and what role the earlier-named person actually holds, as a
-fact, not "not checked".
+fact, not "not checked". No refs, role codes or query details in the reply.
 
 **Tool-call budget:** interactive sessions often cap tool calls (commonly 12). Spend one on `kb_schema` near the
 start, then go straight to `kb_stats` / `kb_query` for the answer instead of iterating search rephrasings.
