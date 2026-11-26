@@ -1,0 +1,138 @@
+{
+  "format": "qaci-duo.catalog",
+  "version": 1,
+  "teams": [
+    {
+      "slug": "adlc",
+      "name": "ADLC",
+      "release": "6.1.0",
+      "summary": "One agent for the full delivery lifecycle: requirements, planning, implementation, verification and deployment, with your approval before anything ships.",
+      "category": "Software",
+      "setupMinutes": 10,
+      "package": "packages/adlc.json",
+      "manifest": "teams/adlc/team.mausteam.json",
+      "readme": "teams/adlc/README.md",
+      "members": 1,
+      "skills": [
+        "teams/adlc/skills/adlc-triage/SKILL.md",
+        "teams/adlc/skills/adlc-feature/SKILL.md",
+        "teams/adlc/skills/adlc-bugfix/SKILL.md",
+        "teams/adlc/skills/adlc-research/SKILL.md",
+        "teams/adlc/skills/adlc-chore/SKILL.md",
+        "teams/adlc/skills/adlc-approval/SKILL.md",
+        "teams/adlc/skills/adlc-report/SKILL.md",
+        "teams/adlc/skills/adlc-paper-prototype/SKILL.md",
+        "teams/adlc/skills/adlc-git-local/SKILL.md",
+        "teams/adlc/skills/adlc-git-remote/SKILL.md",
+        "teams/adlc/skills/adlc-code-review/SKILL.md",
+        "teams/adlc/skills/adlc-verify-browser/SKILL.md",
+        "teams/adlc/skills/adlc-ui-preview/SKILL.md",
+        "teams/adlc/skills/deploy-github/SKILL.md",
+        "teams/adlc/skills/deploy-azure-devops/SKILL.md",
+        "teams/adlc/skills/deploy-render/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "GitHub",
+          "Render"
+        ]
+      }
+    },
+    {
+      "slug": "experiment-designer",
+      "name": "Experiment Designer",
+      "release": "2.0.0",
+      "summary": "Give it a survey and an idea, get a reviewed experiment plan with numbers to reproduce, fixed pass and fail criteria, and a budget that fits.",
+      "category": "Research",
+      "setupMinutes": 5,
+      "package": "packages/experiment-designer.json",
+      "manifest": "teams/experiment-designer/team.mausteam.json",
+      "readme": "teams/experiment-designer/README.md",
+      "members": 1,
+      "skills": [
+        "teams/experiment-designer/skills/design-experiments/SKILL.md",
+        "teams/experiment-designer/skills/form-hypotheses/SKILL.md",
+        "teams/experiment-designer/skills/build-experiment-plan/SKILL.md",
+        "teams/experiment-designer/skills/plan-pilot/SKILL.md",
+        "teams/experiment-designer/skills/review-design/SKILL.md",
+        "teams/experiment-designer/skills/check-baseline-code/SKILL.md",
+        "teams/experiment-designer/skills/find-papers/SKILL.md",
+        "teams/experiment-designer/skills/verify-citations/SKILL.md",
+        "teams/experiment-designer/skills/read-paper/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Exa",
+          "DeepWiki"
+        ]
+      }
+    },
+    {
+      "slug": "literature-surveyor",
+      "name": "Literature Surveyor",
+      "release": "2.0.0",
+      "summary": "Know where the field stands and whether your idea is new, from papers that were verified against registries and read in full.",
+      "category": "Research",
+      "setupMinutes": 5,
+      "package": "packages/literature-surveyor.json",
+      "manifest": "teams/literature-surveyor/team.mausteam.json",
+      "readme": "teams/literature-surveyor/README.md",
+      "members": 1,
+      "skills": [
+        "teams/literature-surveyor/skills/survey-literature/SKILL.md",
+        "teams/literature-surveyor/skills/find-papers/SKILL.md",
+        "teams/literature-surveyor/skills/verify-citations/SKILL.md",
+        "teams/literature-surveyor/skills/read-paper/SKILL.md",
+        "teams/literature-surveyor/skills/map-field/SKILL.md",
+        "teams/literature-surveyor/skills/check-novelty/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Exa",
+          "DeepWiki",
+          "cve.now"
+        ]
+      }
+    },
+    {
+      "slug": "social-media-marketer",
+      "name": "Social Media Marketer",
+      "release": "1.0.0",
+      "summary": "A month of sourced, on-brand posts, a daily post from fresh news, and a weekly report from real numbers, with nothing going public until you approve it.",
+      "category": "Marketing",
+      "setupMinutes": 15,
+      "package": "packages/social-media-marketer.json",
+      "manifest": "teams/social-media-marketer/team.mausteam.json",
+      "readme": "teams/social-media-marketer/README.md",
+      "members": 1,
+      "skills": [
+        "teams/social-media-marketer/skills/plan-content-calendar/SKILL.md",
+        "teams/social-media-marketer/skills/daily-news-post/SKILL.md",
+        "teams/social-media-marketer/skills/publish-social-post/SKILL.md",
+        "teams/social-media-marketer/skills/write-video-script/SKILL.md",
+        "teams/social-media-marketer/skills/social-weekly-report/SKILL.md",
+        "teams/social-media-marketer/skills/triage-comments/SKILL.md",
+        "teams/social-media-marketer/skills/brand-facts/SKILL.md",
+        "teams/social-media-marketer/skills/expert-knowledge/SKILL.md",
+        "teams/social-media-marketer/skills/news-hook/SKILL.md",
+        "teams/social-media-marketer/skills/fact-check/SKILL.md",
+        "teams/social-media-marketer/skills/post-formats/SKILL.md",
+        "teams/social-media-marketer/skills/format-rotation/SKILL.md",
+        "teams/social-media-marketer/skills/plain-writing/SKILL.md",
+        "teams/social-media-marketer/skills/browser-posting/SKILL.md"
+      ],
+      "requires": {
+        "apps": [
+          "Facebook",
+          "Instagram",
+          "LinkedIn",
+          "Threads",
+          "TikTok",
+          "Exa",
+          "Google Analytics",
+          "Google Sheets"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "ADLC",
+    "description": "One agent for the full delivery lifecycle: requirements, planning, implementation, verification and deployment, with your approval before anything ships.",
+    "members": [
+      {
+        "key": "bot",
+        "name": "ADLC",
+        "title": "ADLC",
+        "description": "A single agent that runs the full ADLC flow — takes work, classifies and plans it, implements and verifies it, merges, publishes to GitHub/Azure DevOps and deploys a demo on request, and reports back.",
+        "appearance": {
+          "color": "pink"
+        }
+      }
+    ],
+    "room": {
+      "name": "ADLC",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "bot"
+      }
+    }
+  }
+}

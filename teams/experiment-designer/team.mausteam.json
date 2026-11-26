@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Experiment Designer",
+    "description": "Give it a survey and an idea, get a reviewed experiment plan with numbers to reproduce, fixed pass and fail criteria, and a budget that fits.",
+    "members": [
+      {
+        "key": "designer",
+        "name": "Experiment Designer",
+        "title": "Experiment Designer",
+        "description": "Turns a research idea and a survey's gaps into a reviewed experiment plan with falsifiable hypotheses, fair baselines, fixed pass and fail criteria and a budget, as DESIGN.md and DESIGN.html.",
+        "appearance": {
+          "color": "cyan"
+        }
+      }
+    ],
+    "room": {
+      "name": "Experiment Designer",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "designer"
+      }
+    }
+  }
+}

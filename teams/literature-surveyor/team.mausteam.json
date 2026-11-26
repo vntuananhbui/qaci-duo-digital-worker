@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Literature Surveyor",
+    "description": "Know where the field stands and whether your idea is new, from papers that were verified against registries and read in full.",
+    "members": [
+      {
+        "key": "surveyor",
+        "name": "Surveyor",
+        "title": "Surveyor",
+        "description": "Searches, verifies and close-reads the literature for a research topic or idea, and writes a cited SURVEY.md with located numbers, a novelty verdict and a design brief.",
+        "appearance": {
+          "color": "blue"
+        }
+      }
+    ],
+    "room": {
+      "name": "Literature Surveyor",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "surveyor"
+      }
+    }
+  }
+}

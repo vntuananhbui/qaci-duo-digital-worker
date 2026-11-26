@@ -1,0 +1,27 @@
+{
+  "format": "qaci-duo.team",
+  "version": 1,
+  "team": {
+    "name": "Social Media Marketer",
+    "description": "A month of sourced, on-brand posts, a daily post from fresh news, and a weekly report from real numbers, with nothing going public until you approve it.",
+    "members": [
+      {
+        "key": "marketer",
+        "name": "Marketer",
+        "title": "Social Media Marketer",
+        "description": "Plans, drafts and reports on social media content for a small company's marketing team; drafts and analyses, and waits for the owner's approval before anything goes public.",
+        "appearance": {
+          "color": "pink"
+        }
+      }
+    ],
+    "room": {
+      "name": "Social Media Marketer",
+      "bulletin": "",
+      "defaultResponder": {
+        "kind": "member",
+        "member": "marketer"
+      }
+    }
+  }
+}
