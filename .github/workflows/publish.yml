@@ -1,16 +1,18 @@
-# After a reviewed pull request is merged into main, publish the library QACI Duo reads to the `library` branch.
+# After a reviewed pull request is merged, publish the library QACI Duo reads:
+#   main -> `library`      (prod)
+#   dev  -> `library-dev`  (dev)
 name: Publish library
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: publish-library
+  group: publish-library-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -27,12 +29,14 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Push dist/ to the library branch
+        env:
+          TARGET: ${{ github.ref_name == 'main' && 'library' || 'library-dev' }}
         run: |
           header="$(git config --get http.https://github.com/.extraheader)"
           cd dist
-          git init -q -b library
+          git init -q -b "$TARGET"
           git add -A
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -q -m "Publish library from ${GITHUB_SHA}"
           git -c http.https://github.com/.extraheader="$header" \
-            push -f "https://github.com/${GITHUB_REPOSITORY}.git" HEAD:library
+            push -f "https://github.com/${GITHUB_REPOSITORY}.git" "HEAD:$TARGET"
