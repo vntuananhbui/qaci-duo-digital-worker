@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { MAX_CATALOG_BYTES, buildCatalog, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker, workerLibraryFiles, workerPackage } from "./lib.mjs";
 import { loadRepository } from "./repo.mjs";
+import { parseBenchmark } from "./benchmark-lib.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
@@ -42,6 +43,16 @@ const { playbooks, workers, errors: contentErrors } = loadRepository(root, files
 errors.push(...contentErrors);
 
 // The templates must stay valid so a contributor always starts from a file that passes.
+// Every benchmark.yml present must be valid; whether a changed skill has one is scripts/benchmark.mjs check's job.
+for (const path of files.filter((file) => /^(?:skills\/[^/]+|templates\/skill)\/benchmark\.yml$/.test(file))) {
+  let raw;
+  try {
+    raw = readFileSync(join(root, path), "utf8");
+  } catch {
+    continue;
+  }
+  for (const problem of parseBenchmark(raw).errors) errors.push(`${path}: ${problem}`);
+}
 const templatePlaybook = readFileSync(join(root, "templates/skill/SKILL.md"), "utf8");
 for (const problem of validatePlaybook(templatePlaybook, "your-playbook")) errors.push(`templates/skill/SKILL.md: ${problem}`);
 const templateWorker = readFileSync(join(root, "templates/worker.md"), "utf8");

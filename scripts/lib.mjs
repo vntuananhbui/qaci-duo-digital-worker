@@ -848,13 +848,16 @@ export function buildCatalog(entries) {
 const ALLOWED_FILES = [
   /^workers\/[a-z0-9][a-z0-9-]*\.md$/,
   /^skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/SKILL\.md$/,
-  /^templates\/(?:worker\.md|skill\/SKILL\.md)$/,
+  // A skill's benchmark cases, and what a QACI Duo answered on them (scripts/benchmark-lib.mjs).
+  /^skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/benchmark\.yml$/,
+  /^benchmarks\/[a-z0-9]+(?:-[a-z0-9]+)*\/(?:local|dev)\.json$/,
+  /^templates\/(?:worker\.md|skill\/(?:SKILL\.md|benchmark\.yml))$/,
   /^scripts\/[a-z0-9-]+\.mjs$/,
   /^tests\/[a-z0-9.-]+\.mjs$/,
   // Declarative JSON Schema documenting the hand-written validators above.
   /^schema\/[a-z0-9.-]+\.schema\.json$/,
   /^\.github\/(?:CODEOWNERS|PULL_REQUEST_TEMPLATE\.md|workflows\/[a-z0-9-]+\.yml|ISSUE_TEMPLATE\/[a-z0-9-]+\.yml)$/,
-  /^(?:README|CONTRIBUTING|FORMAT|SECURITY|AGENTS|CLAUDE)\.md$/,
+  /^(?:README|CONTRIBUTING|FORMAT|SECURITY|AGENTS|CLAUDE|REVIEW_CHECKLIST)\.md$/,
   /^(?:LICENSE|package\.json|package-lock\.json|\.gitignore|next\.config\.ts|tsconfig\.json|next-env\.d\.ts)$/,
   // The public browsing website (Next.js App Router).
   /^app\/(?:[a-z0-9_.[\]-]+\/)*[a-z0-9_.[\]-]+\.(?:tsx|ts|css|svg)$/,

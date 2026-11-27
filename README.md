@@ -6,11 +6,12 @@ The library of **Digital Workers** and **playbooks** that QACI Duo installs from
   (`soul`), working rules and a set of capabilities.
 - A **playbook** is one capability: a concrete procedure written as a standard `SKILL.md`. The same file can be
   carried by a worker as a trigger-injected *playbook*, as an embedded *skill*, or both — see
-  [FORMAT.md](FORMAT.md#playbook-vs-skill-the-same-playbooksnameskillmd-file-two-ways-to-carry-it).
+  [FORMAT.md](FORMAT.md#playbook-vs-skill-the-same-skillsnameskillmd-file-two-ways-to-carry-it).
 
 ```
-skills/<name>/SKILL.md ─┐
-workers/<id>.md ───────────┴─► pull request ─► CI + code-owner review ─► merge to main ─► publish ─► `library` branch ─► QACI Duo
+skills/<name>/SKILL.md + benchmark.yml ─┐
+workers/<id>.md ─────────────────────────┴─► PR into dev ─► CI (validate + benchmark) + code-owner review
+   ─► dev (`library-dev`, QACI Duo dev) ─► benchmark on dev ─► PR dev → main ─► main (`library`, production)
 ```
 
 ## Available today

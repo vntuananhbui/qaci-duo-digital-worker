@@ -6,9 +6,11 @@ Guidance for coding agents (Claude Code, Codex, Cursor and others) working in th
 ## What this repository is
 
 The source of the Digital Workers that the QACI Duo app installs. Content is Markdown: `workers/<id>.md` (a bot)
-and `skills/<name>/SKILL.md` (a capability). A merge to `main` runs `.github/workflows/publish.yml`, which builds
-`dist/` and force-pushes it to the `library` branch; the app reads only `library` (`catalog.json`,
-`packages/<id>.json`). A change on `main` therefore reaches every user within minutes. Treat a merge as a release.
+and `skills/<name>/SKILL.md` (a capability). A merge runs `.github/workflows/publish.yml`, which builds `dist/` and
+force-pushes it: `dev` to the `library-dev` branch (read by the dev QACI Duo), `main` to the `library` branch (read
+by production). The app reads only those branches (`catalog.json`, `packages/<id>.json`, `skills/<name>/SKILL.md`).
+Pull requests target `dev`; a code owner promotes `dev` to `main`. A change on `main` reaches every user within
+minutes: treat a merge to `main` as a release.
 
 ## Layout
 
@@ -16,9 +18,13 @@ and `skills/<name>/SKILL.md` (a capability). A merge to `main` runs `.github/wor
 |---|---|
 | `workers/<id>.md` | One Digital Worker: YAML frontmatter (identity, `release`, `apps`, `playbooks`, `skills`, `agents[]` with `soul`, …) and a body with `## Mission`, `## Working rules`, `## Completion rule` |
 | `skills/<name>/SKILL.md` | One capability. Used as a playbook, a skill, or both, by any worker |
+| `skills/<name>/benchmark.yml` | The skill's benchmark cases and criteria (CONTRIBUTING.md "Benchmark a skill") |
+| `benchmarks/<name>/{local,dev}.json` | What a QACI Duo answered on those cases, bound by SHA-256 to the SKILL.md and benchmark.yml it ran with |
+| `REVIEW_CHECKLIST.md` | The standard every pull request is reviewed against |
 | `templates/` | The starting files for contributors; they must stay valid (CI checks them) |
 | `scripts/lib.mjs` | **Source of truth** for every rule: validators, package builder, catalog, allowed files, secret scan |
 | `scripts/validate.mjs`, `scripts/build.mjs` | `npm test` and `npm run build` entry points |
+| `scripts/benchmark.mjs`, `scripts/benchmark-lib.mjs` | Benchmark `init` / `check` / `judge` (LLM judge), run by `.github/workflows/benchmark.yml` |
 | `scripts/import-from-qaci-duo.mjs` | One-off porter from the app's `docs/playbooks/*.json` |
 | `tests/validate.test.mjs` | Node test runner tests for `lib.mjs` |
 | `schema/*.schema.json` | JSON Schema mirror of `lib.mjs`, for editors only. If it disagrees with `lib.mjs`, the schema is wrong |
@@ -35,6 +41,7 @@ npm ci --ignore-scripts
 npm test            # validate every worker and playbook, then run the unit tests; must pass before any commit
 npm run build       # write dist/ (catalog.json, packages/<id>.json and .md, teams/, skills/)
 npm run typecheck   # only when you touch app/, components/ or lib/
+node scripts/benchmark.mjs check --base origin/dev --env any   # every changed skill has a valid, current benchmark run
 ```
 
 ## Rules the validator enforces

@@ -1,0 +1,56 @@
+# Every skill a pull request changes must carry a benchmark and pass it (CONTRIBUTING.md "Benchmark a skill").
+#   into dev:  a run on any QACI Duo (local or dev) bound to the exact SKILL.md and benchmark.yml in the PR.
+#   into main: a run on the dev environment, of the SKILL.md the dev library (library-dev) actually publishes.
+# The LLM judge re-scores the committed answers here, so a score cannot be edited by hand.
+name: Benchmark skills
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: benchmark-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE: origin/${{ github.base_ref }}
+      BENCH_ENV: ${{ github.base_ref == 'main' && 'dev' || 'any' }}
+      LIBRARY_DEV: https://raw.githubusercontent.com/${{ github.repository }}/library-dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Check benchmark files
+        run: node scripts/benchmark.mjs check --base "$BASE" --env "$BENCH_ENV" --library-url "$LIBRARY_DEV"
+      - name: Judge the answers
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
+          BENCH_JUDGE_MODEL: ${{ vars.BENCH_JUDGE_MODEL }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY is not set for this repository (or this pull request comes from a fork), so the benchmark cannot be judged."
+            exit 1
+          fi
+          [ -n "$ANTHROPIC_BASE_URL" ] || unset ANTHROPIC_BASE_URL
+          [ -n "$BENCH_JUDGE_MODEL" ] || unset BENCH_JUDGE_MODEL
+          node scripts/benchmark.mjs judge --base "$BASE" --env "$BENCH_ENV" --library-url "$LIBRARY_DEV" --runs 2 --report benchmark-report.md
+      - name: Post the report on the pull request
+        if: always() && hashFiles('benchmark-report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body-file benchmark-report.md --edit-last --create-if-none
