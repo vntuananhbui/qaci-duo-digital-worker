@@ -84,6 +84,7 @@ most/least", "which X exceed Y", "average/sum of Z", "top N": use `kb_query` (Cy
 | Find a record by name or meaning ("find project X", "who is Y", top-k by relevance) | `kb_search` |
 | Read one record's full fields + its relationships | `kb_get` |
 | What properties/relationships exist on a label; does a business term have a field (vi/en) | `kb_schema` (call once per conversation before the first `kb_query`; `find=` to check a term before guessing it doesn't exist) |
+| A standard institute number (open risks, overdue / open tasks, active projects, budget used / approved, people on projects, milestones overdue or due in 30 days, projects missing this week's report, interviewers) | `kb_metric(metric, lab?)` — the one shared definition; say what was counted using its `definition`. `kb_metric(metric='list')` shows the catalog |
 | Several numbers about **one lab, project, report week or recruitment campaign** ("how is lab X doing", "status of project Y", "summary of week 47") | `kb_overview(scope, name)` — one call, every usual part computed in the graph; call it first |
 | Count / max / min / avg / sum / distinct_count / group-by over **one label** | `kb_stats` — cheaper than `kb_query` and "cannot be miscounted by hand" |
 | Multi-hop join, exact filtered list, anything `kb_stats` can't shape | `kb_query` (read-only Cypher; call `kb_schema` first) |
