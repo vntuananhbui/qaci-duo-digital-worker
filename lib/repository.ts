@@ -2,7 +2,7 @@ import "server-only";
 
 // A thin, typed wrapper around the SAME repository tooling `npm test` and `npm run build` use
 // (scripts/lib.mjs, scripts/repo.mjs), so the site reads this repository's real workers/*.md and
-// playbooks/*/SKILL.md through the one shared implementation rather than a second, ad hoc parser.
+// skills/*/SKILL.md through the one shared implementation rather than a second, ad hoc parser.
 // scripts/lib.mjs/repo.mjs stay the source of truth: this file only shapes their output as TypeScript.
 import { execFileSync } from "node:child_process";
 import { dirname, resolve } from "node:path";

@@ -4,7 +4,7 @@
 
 ## Checklist
 
-- [ ] Only `playbooks/<name>/SKILL.md` and/or `workers/<worker>.md` changed (plus README if a table changed)
+- [ ] Only `skills/<name>/SKILL.md` and/or `workers/<worker>.md` changed (plus README if a table changed)
 - [ ] `name` matches the folder; `id` matches the file name
 - [ ] The `release` of every affected worker is bumped
 - [ ] The playbook has every section in FORMAT.md, with *Check:* lines and an *Output* template

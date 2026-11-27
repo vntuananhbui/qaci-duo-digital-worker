@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { readPlaybook, splitPackage, validatePackage, validatePlaybook, validateWorker, workerPackage } from "./lib.mjs";
 
-const PLAYBOOK_PATH = /^playbooks\/([^/]+)\/SKILL\.md$/;
+const PLAYBOOK_PATH = /^skills\/([^/]+)\/SKILL\.md$/;
 const WORKER_PATH = /^workers\/([^/]+)\.md$/;
 
 /** Valid playbooks by name, valid workers, and every problem found, from the given repository-relative paths. */

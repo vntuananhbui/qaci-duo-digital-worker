@@ -15,14 +15,14 @@ function trackedFiles() {
     return out.split("\0").filter(Boolean);
   } catch {
     const workers = readdirSync(join(root, "workers")).map((name) => `workers/${name}`);
-    const playbooks = readdirSync(join(root, "playbooks")).map((name) => `playbooks/${name}/SKILL.md`);
+    const playbooks = readdirSync(join(root, "skills")).map((name) => `skills/${name}/SKILL.md`);
     return [...workers, ...playbooks];
   }
 }
 
 const files = trackedFiles();
 for (const path of disallowedFiles(files)) {
-  errors.push(`${path}: this file is not allowed (a Digital Worker lives in workers/<id>.md, a playbook in playbooks/<name>/SKILL.md)`);
+  errors.push(`${path}: this file is not allowed (a Digital Worker lives in workers/<id>.md, a playbook in skills/<name>/SKILL.md)`);
 }
 for (const path of files) {
   let content;
@@ -42,12 +42,12 @@ const { playbooks, workers, errors: contentErrors } = loadRepository(root, files
 errors.push(...contentErrors);
 
 // The templates must stay valid so a contributor always starts from a file that passes.
-const templatePlaybook = readFileSync(join(root, "templates/playbook/SKILL.md"), "utf8");
-for (const problem of validatePlaybook(templatePlaybook, "your-playbook")) errors.push(`templates/playbook/SKILL.md: ${problem}`);
+const templatePlaybook = readFileSync(join(root, "templates/skill/SKILL.md"), "utf8");
+for (const problem of validatePlaybook(templatePlaybook, "your-playbook")) errors.push(`templates/skill/SKILL.md: ${problem}`);
 const templateWorker = readFileSync(join(root, "templates/worker.md"), "utf8");
 const templateProblems = validateWorker(templateWorker, "your-worker", new Set(["your-playbook"]));
 for (const problem of templateProblems) errors.push(`templates/worker.md: ${problem}`);
-if (templateProblems.length === 0 && errors.every((error) => !error.startsWith("templates/playbook"))) {
+if (templateProblems.length === 0 && errors.every((error) => !error.startsWith("templates/skill"))) {
   const generated = workerPackage(templateWorker, new Map([["your-playbook", readPlaybook(templatePlaybook)]]));
   for (const problem of validatePackage(generated, "your-worker")) errors.push(`templates/worker.md: the generated package is invalid: ${problem}`);
 }

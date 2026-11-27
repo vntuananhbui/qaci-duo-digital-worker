@@ -70,9 +70,9 @@ If a tool is missing or fails, say so and stop at that step; never work around i
 
 1. **Get the library and its rules.**
    `git clone --depth 1 https://github.com/vntuananhbui/qaci-duo-digital-worker.git dw-library && cd dw-library`.
-   Read `AGENTS.md`, `FORMAT.md`, `CONTRIBUTING.md`, `templates/worker.md` and `templates/playbook/SKILL.md` in full:
+   Read `AGENTS.md`, `FORMAT.md`, `CONTRIBUTING.md`, `templates/worker.md` and `templates/skill/SKILL.md` in full:
    they are the current rules and override anything in this skill that disagrees.
-   For a change, also read `workers/<id>.md` and every `playbooks/<name>/SKILL.md` it carries.
+   For a change, also read `workers/<id>.md` and every `skills/<name>/SKILL.md` it carries.
    *Check:* `ls workers playbooks` — note every existing skill you could reuse instead of writing a new one.
 2. **Ask the inputs** (table above), once.
 3. **Plan, then stop and ask.** Show the owner a short plan before writing anything:
@@ -87,7 +87,7 @@ If a tool is missing or fails, say so and stop at that step; never work around i
    - `workers/<id>.md`: frontmatter (`id` = file name, `release`, `tagline` ≤160, `description` ≤2,000, `apps`,
      `playbooks`, `skills`, `agents[]` with a `soul` that says to open the main skill when it was not injected, and
      the same `playbooks`/`skills` lists), then `## Mission`, `## Working rules`, `## Completion rule`.
-   - `playbooks/<name>/SKILL.md`: one-line frontmatter fields (`name` = folder, `title`, `description` ≤300,
+   - `skills/<name>/SKILL.md`: one-line frontmatter fields (`name` = folder, `title`, `description` ≤300,
      `triggers`, `tags` ≤8, `license`, `author`), then the sections *When to use* (with **Not for:**), *Inputs*,
      *Procedure* (numbered, with *Check:* lines), *Output*, *Quality checklist*, *Guardrails*, *Example*.
    - Refer to another skill as "open the `<name>` skill (read its SKILL.md; the exact path is in your Imported
@@ -147,7 +147,7 @@ retractions"). Body, following the library's `.github/PULL_REQUEST_TEMPLATE.md`:
 <Which worker and skills, and what a user can now get done.>
 
 ## Checklist
-- [x] Only `playbooks/<name>/SKILL.md` and/or `workers/<worker>.md` changed (plus README if a table changed)
+- [x] Only `skills/<name>/SKILL.md` and/or `workers/<worker>.md` changed (plus README if a table changed)
 - [x] `name` matches the folder; `id` matches the file name
 - [x] The `release` of every affected worker is bumped
 - [x] The playbook has every section in FORMAT.md, with *Check:* lines and an *Output* template
@@ -195,7 +195,7 @@ a list of documents to prepare. It should search the funder's website with Exa."
 
 **Response outline:** Asks the inputs once. Plan: worker `grant-writer` (agent `writer`), skills `read-grant-call`
 (new, main procedure, triggers "grant call, am I eligible, grant application") and reused `find-papers` for prior
-work; app `exa`. After the owner's OK, writes `workers/grant-writer.md` and `playbooks/read-grant-call/SKILL.md`,
+work; app `exa`. After the owner's OK, writes `workers/grant-writer.md` and `skills/read-grant-call/SKILL.md`,
 verifies `exa` and `EXA_SEARCH` with one real call, runs `npm test` until `OK:`, attaches
 `dist/packages/grant-writer.json` for the owner to try, shows the diff, then — on "yes" — forks (the owner is not a
 collaborator), creates `dw/grant-writer-new`, writes both files to that branch, and opens a pull request to `main`.

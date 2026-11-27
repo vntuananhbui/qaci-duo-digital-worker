@@ -1,5 +1,5 @@
 ---
-# QACI Duo Digital Worker template. A Digital Worker is one bot that carries playbooks from playbooks/.
+# QACI Duo Digital Worker template. A Digital Worker is one bot that carries playbooks from skills/.
 # Copy this file to workers/<your-worker>.md and set `id` to the file name.
 id: your-worker
 release: 1.0.0
@@ -27,13 +27,13 @@ setupMinutes: 5
 #     reason: Searches papers and web pages by meaning.
 #     optional: true
 playbooks:
-  - your-playbook # folder names under playbooks/
+  - your-playbook # folder names under skills/
 # Optional: a worker can carry more than one agent, a shared room, paused routines, a standing soul, declared MCP
 # connections, and whole embedded skills (not just lightweight playbooks). See FORMAT.md and schema/worker.schema.json.
 # A worker with none of the fields below behaves exactly as above — this is purely additive.
 # soul: Standing system prompt for this worker's own agent (your-worker), under 24,000 bytes.
 # skills:
-#   - your-skill # folder names under playbooks/, embedded whole (as SKILL.md) instead of trigger+instructions
+#   - your-skill # folder names under skills/, embedded whole (as SKILL.md) instead of trigger+instructions
 # connections:
 #   - key: your-connection
 #     label: Your Connection

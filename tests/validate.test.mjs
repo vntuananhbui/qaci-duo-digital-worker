@@ -1,6 +1,6 @@
 // Each safety rule refuses the file it is meant to refuse. Fake secrets are assembled at run time so the
 // repository itself never contains a token-shaped string. Fixtures are synthetic (not read from workers/ or
-// playbooks/) so these tests do not depend on whatever content the repository happens to carry.
+// skills/) so these tests do not depend on whatever content the repository happens to carry.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
@@ -162,7 +162,7 @@ test("a sample playbook and worker pass validation", () => {
 });
 
 test("the templates pass so contributors start from valid files", () => {
-  const template = read("templates/playbook/SKILL.md");
+  const template = read("templates/skill/SKILL.md");
   assert.deepEqual(validatePlaybook(template, "your-playbook"), []);
   const dw = read("templates/worker.md");
   assert.deepEqual(validateWorker(dw, "your-worker", new Set(["your-playbook"])), []);
@@ -226,8 +226,8 @@ test("token-shaped strings are found", () => {
 });
 
 test("only the known layout is allowed", () => {
-  assert.deepEqual(disallowedFiles(["workers/a-b.md", "playbooks/a-b/SKILL.md", "README.md", "AGENTS.md", "CLAUDE.md", "scripts/lib.mjs", ".github/workflows/validate.yml"]), []);
-  const bad = ["playbooks/a/run.sh", "playbooks/a/b/SKILL.md", "playbooks/Upper/SKILL.md", "workers/x/y.md", "image.png", "packages/a.md"];
+  assert.deepEqual(disallowedFiles(["workers/a-b.md", "skills/a-b/SKILL.md", "README.md", "AGENTS.md", "CLAUDE.md", "scripts/lib.mjs", ".github/workflows/validate.yml"]), []);
+  const bad = ["skills/a/run.sh", "skills/a/b/SKILL.md", "skills/Upper/SKILL.md", "workers/x/y.md", "image.png", "packages/a.md"];
   assert.deepEqual(disallowedFiles(bad), bad);
 });
 

@@ -9,7 +9,7 @@ The library of **Digital Workers** and **playbooks** that QACI Duo installs from
   [FORMAT.md](FORMAT.md#playbook-vs-skill-the-same-playbooksnameskillmd-file-two-ways-to-carry-it).
 
 ```
-playbooks/<name>/SKILL.md ─┐
+skills/<name>/SKILL.md ─┐
 workers/<id>.md ───────────┴─► pull request ─► CI + code-owner review ─► merge to main ─► publish ─► `library` branch ─► QACI Duo
 ```
 

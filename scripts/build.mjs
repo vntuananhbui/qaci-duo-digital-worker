@@ -32,7 +32,7 @@ for (const worker of workers) {
   const { playbooks: carriesPlaybooks, skills: carriesSkills } = splitPackage(worker.markdown).metadata;
   for (const name of [...(carriesPlaybooks ?? []), ...(carriesSkills ?? [])]) usedBy.set(name, [...(usedBy.get(name) ?? []), entry.name]);
 }
-for (const playbook of playbooks.values()) write(`playbooks/${playbook.name}/SKILL.md`, playbook.raw);
+for (const playbook of playbooks.values()) write(`skills/${playbook.name}/SKILL.md`, playbook.raw);
 const catalog = buildCatalog(entries);
 write("catalog.json", `${JSON.stringify(catalog, null, 2)}\n`);
 write("README.md", [
@@ -53,7 +53,7 @@ write("README.md", [
   "| Playbook | What it does | Carried by | SKILL.md |",
   "|---|---|---|---|",
   ...[...playbooks.values()].map((playbook) =>
-    `| ${playbook.title} | ${playbook.description} | ${(usedBy.get(playbook.name) ?? ["—"]).join(", ")} | [raw](${raw(`playbooks/${playbook.name}/SKILL.md`)}) |`),
+    `| ${playbook.title} | ${playbook.description} | ${(usedBy.get(playbook.name) ?? ["—"]).join(", ")} | [raw](${raw(`skills/${playbook.name}/SKILL.md`)}) |`),
   "",
 ].join("\n"));
 console.log(`Built ${entries.length} Digital Workers and ${playbooks.size} playbooks in ${out}`);

@@ -5,7 +5,7 @@
 //   node scripts/import-from-qaci-duo.mjs <path/to/qaciduo-adlc.json> adlc
 //   node scripts/import-from-qaci-duo.mjs <path/to/qaciduo-app-rebuild.json> craft
 //
-// It writes workers/<id>.md and playbooks/<skill-name>/SKILL.md for every skill the source package carries, then
+// It writes workers/<id>.md and skills/<skill-name>/SKILL.md for every skill the source package carries, then
 // self-checks the result with this repository's own validateWorker/workerPackage/validatePackage — the same gate
 // `npm test` runs — before anything is written to disk, so a bad source file fails loudly instead of landing.
 //
@@ -93,7 +93,7 @@ if (!pkg.agents.some((agent) => agent.key === config.leaderKey)) {
   throw new Error(`${sourcePath}: no agent with key "${config.leaderKey}" (set IMPORTS.${importKey}.leaderKey to the real lead's key)`);
 }
 
-// --- Playbook files: one playbooks/<name>/SKILL.md per skill the source embeds, synthesizing the fields this
+// --- Playbook files: one skills/<name>/SKILL.md per skill the source embeds, synthesizing the fields this
 // repository's own SKILL.md convention requires (title, triggers, license, author) but the real skill format
 // (shared/skill-md.ts) does not — it only has name/description/tags.
 const needsQuote = (value) => value.includes(": ") || /^[-?:&*!|>%@`"']/.test(value) || value.endsWith(":");
@@ -127,14 +127,14 @@ function writePlaybookFile(skill) {
     "",
   ].join("\n");
   const content = `${frontmatter}${body.replace(/^\n+/, "\n")}`;
-  const dir = resolve(root, "playbooks", skill.name);
+  const dir = resolve(root, "skills", skill.name);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "SKILL.md"), content);
   return content;
 }
 
 const skillsByName = new Map((pkg.skills?.entries ?? []).map((skill) => [skill.name, writePlaybookFile(skill)]));
-console.log(`Wrote ${skillsByName.size} playbooks/*/SKILL.md file(s).`);
+console.log(`Wrote ${skillsByName.size} skills/*/SKILL.md file(s).`);
 
 // --- workers/<id>.md: the real agents (keys unchanged, so each agent's own soul's {{agent:<key>}} self-references
 // still resolve) plus the worker's own framing from IMPORTS above. `pkg.agents` already has `agent.soul`,

@@ -6,7 +6,7 @@ Guidance for coding agents (Claude Code, Codex, Cursor and others) working in th
 ## What this repository is
 
 The source of the Digital Workers that the QACI Duo app installs. Content is Markdown: `workers/<id>.md` (a bot)
-and `playbooks/<name>/SKILL.md` (a capability). A merge to `main` runs `.github/workflows/publish.yml`, which builds
+and `skills/<name>/SKILL.md` (a capability). A merge to `main` runs `.github/workflows/publish.yml`, which builds
 `dist/` and force-pushes it to the `library` branch; the app reads only `library` (`catalog.json`,
 `packages/<id>.json`). A change on `main` therefore reaches every user within minutes. Treat a merge as a release.
 
@@ -15,7 +15,7 @@ and `playbooks/<name>/SKILL.md` (a capability). A merge to `main` runs `.github/
 | Path | What it is |
 |---|---|
 | `workers/<id>.md` | One Digital Worker: YAML frontmatter (identity, `release`, `apps`, `playbooks`, `skills`, `agents[]` with `soul`, …) and a body with `## Mission`, `## Working rules`, `## Completion rule` |
-| `playbooks/<name>/SKILL.md` | One capability. Used as a playbook, a skill, or both, by any worker |
+| `skills/<name>/SKILL.md` | One capability. Used as a playbook, a skill, or both, by any worker |
 | `templates/` | The starting files for contributors; they must stay valid (CI checks them) |
 | `scripts/lib.mjs` | **Source of truth** for every rule: validators, package builder, catalog, allowed files, secret scan |
 | `scripts/validate.mjs`, `scripts/build.mjs` | `npm test` and `npm run build` entry points |
@@ -33,7 +33,7 @@ next to a `SKILL.md`: put it inline in the skill as a code block the bot saves a
 ```sh
 npm ci --ignore-scripts
 npm test            # validate every worker and playbook, then run the unit tests; must pass before any commit
-npm run build       # write dist/ (catalog.json, packages/<id>.json and .md, teams/, playbooks/)
+npm run build       # write dist/ (catalog.json, packages/<id>.json and .md, teams/, skills/)
 npm run typecheck   # only when you touch app/, components/ or lib/
 ```
 
@@ -47,7 +47,7 @@ npm run typecheck   # only when you touch app/, components/ or lib/
   Reviewers (not the validator) also expect the sections `# Title`, `## When to use` (with a **Not for:** line),
   `## Inputs`, `## Procedure`, `## Output`, `## Quality checklist`, `## Guardrails`, `## Example`.
 - **Worker:** `id` = file name, semantic `release`, `tagline` ≤160, `description` ≤2,000, `soul` <24,000 bytes,
-  at least one `playbooks` or `skills` entry, every name must exist as `playbooks/<name>/SKILL.md`.
+  at least one `playbooks` or `skills` entry, every name must exist as `skills/<name>/SKILL.md`.
 - **No secrets or tricks** in any tracked file: tokens, keys, long base64-like strings, piping a download into a
   shell, invisible Unicode. Apps are declared by `slug` only; credentials live in the user's app connections.
 
@@ -139,7 +139,7 @@ reviewer must not merge a new app or tool name without it.
   `_mcp` toolkit's tools come from its MCP server and show up only through `COMPOSIO_SEARCH_TOOLS`.
 - Tell the bot to load tools once: tool search for `COMPOSIO_SEARCH_TOOLS` and `COMPOSIO_MULTI_EXECUTE_TOOL`, call
   `COMPOSIO_SEARCH_TOOLS` for the toolkits it needs, then run tools through `COMPOSIO_MULTI_EXECUTE_TOOL` in
-  batches. Put the tools in a *Need → Tool* table, as `playbooks/survey-literature/SKILL.md` does.
+  batches. Put the tools in a *Need → Tool* table, as `skills/survey-literature/SKILL.md` does.
 
 ### A `connections:` slot
 

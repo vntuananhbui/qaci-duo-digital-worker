@@ -45,12 +45,12 @@
       }
     },
     "playbooks": {
-      "description": "1-30 folder names from playbooks/, each carried as a lightweight trigger+instructions pair. A worker needs playbooks, skills, or both.",
+      "description": "1-30 folder names from skills/, each carried as a lightweight trigger+instructions pair. A worker needs playbooks, skills, or both.",
       "type": "array", "minItems": 1, "maxItems": 30,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
     },
     "skills": {
-      "description": "1-30 folder names from playbooks/, each embedded whole as a real importable skill (package.skills.entries[]) instead of a lightweight playbook. A worker needs playbooks, skills, or both.",
+      "description": "1-30 folder names from skills/, each embedded whole as a real importable skill (package.skills.entries[]) instead of a lightweight playbook. A worker needs playbooks, skills, or both.",
       "type": "array", "minItems": 1, "maxItems": 30,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
     },

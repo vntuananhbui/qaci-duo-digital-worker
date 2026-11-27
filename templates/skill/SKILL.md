@@ -1,6 +1,6 @@
 ---
 # QACI Duo playbook template. One SKILL.md is one capability of a Digital Worker.
-# Copy this folder to playbooks/<your-playbook>/ and set `name` to the folder name.
+# Copy this folder to skills/<your-playbook>/ and set `name` to the folder name.
 # Every field stays on ONE line; separate list items with commas; quote a value that contains ": ".
 # Never put tokens, passwords, personal data or internal links in a playbook.
 name: your-playbook
