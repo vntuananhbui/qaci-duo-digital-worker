@@ -84,6 +84,7 @@ most/least", "which X exceed Y", "average/sum of Z", "top N": use `kb_query` (Cy
 | Find a record by name or meaning ("find project X", "who is Y", top-k by relevance) | `kb_search` |
 | Read one record's full fields + its relationships | `kb_get` |
 | What properties/relationships exist on a label; does a business term have a field (vi/en) | `kb_schema` (call once per conversation before the first `kb_query`; `find=` to check a term before guessing it doesn't exist) |
+| Several numbers about **one lab, project, report week or recruitment campaign** ("how is lab X doing", "status of project Y", "summary of week 47") | `kb_overview(scope, name)` — one call, every usual part computed in the graph; call it first |
 | Count / max / min / avg / sum / distinct_count / group-by over **one label** | `kb_stats` — cheaper than `kb_query` and "cannot be miscounted by hand" |
 | Multi-hop join, exact filtered list, anything `kb_stats` can't shape | `kb_query` (read-only Cypher; call `kb_schema` first) |
 | Candidates by skill/topic/school/project fit (recruitment) | `recruitment_find_candidates` (exhaustive filter, not top-k) |
@@ -97,9 +98,19 @@ most/least", "which X exceed Y", "average/sum of Z", "top N": use `kb_query` (Cy
 | Numeric benchmark results across papers | `paper_benchmarks` |
 | Candidate research ideas grounded in the corpus | `research_ideas` |
 
-Dev/test placeholder records (`placeholder=true`: "test", "demo", "my-project-N"...) are hidden
-by default everywhere; only pass `include_placeholders=true` / query for `placeholder=true` when
-the question is actually about test data.
+## Multi-part questions (several numbers in one question)
+
+1. Before any call, list the parts the owner asked for (for example: projects, open risks, open tasks,
+   milestones, budget). Keep the list; every part gets an answer.
+2. If the question is about one lab, project, report week or campaign, call `kb_overview` first. Take every
+   part it covers from that one result. Call `kb_stats` / `kb_query` only for a part it does not cover.
+3. Answer as a short table, one row per part: the number exactly as the tool returned it, and the `ref`
+   (or the record name) it came from. Never add numbers up yourself and never recount a list.
+4. A part with no data gets its own row saying so ("no budget recorded"), never a silent gap.
+5. *Check:* the table has as many rows as the parts you listed in step 1.
+
+`kb_overview` returns `found: false` with `candidates` when several records match the name: ask which one.
+Without `candidates` the record does not exist: say so, do not guess a near match.
 
 ## Data gotchas (verified against the graph, not guesses)
 
