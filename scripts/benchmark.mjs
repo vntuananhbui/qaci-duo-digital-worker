@@ -54,12 +54,18 @@ function loadSkill(skill) {
   return { skillRaw, benchmarkRaw, benchmark, errors: errors.map((error) => `${benchmarkPath}: ${error}`) };
 }
 
-/** Skills whose SKILL.md, benchmark.yml or run files differ from <base>, and that still exist. */
+/**
+ * Skills whose SKILL.md, benchmark.yml or run files differ from <base>, and that still exist. A file only moved with its
+ * content unchanged (a 100% rename, such as a skill moving into a worker's folder) changes no behaviour, so it does not
+ * count.
+ */
 function changedSkills(base) {
-  const out = execFileSync("git", ["diff", "--name-only", `${base}...HEAD`], { cwd: root, encoding: "utf8" });
+  const out = execFileSync("git", ["diff", "--name-status", "-M", `${base}...HEAD`], { cwd: root, encoding: "utf8" });
   const names = new Set();
-  for (const path of out.split("\n")) {
-    const skill = skillOf(path);
+  for (const line of out.split("\n").filter(Boolean)) {
+    const [status, ...paths] = line.split("\t");
+    if (status === "R100" || status.startsWith("D")) continue;
+    const skill = skillOf(paths.at(-1));
     if (skill && skillDir(skill.name)) names.add(skill.name);
   }
   return [...names].sort();
