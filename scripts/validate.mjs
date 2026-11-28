@@ -3,8 +3,10 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { MAX_CATALOG_BYTES, buildCatalog, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker, workerLibraryFiles, workerPackage } from "./lib.mjs";
+import { MAX_CATALOG_BYTES, buildCatalog, skillOf, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker, workerLibraryFiles, workerPackage } from "./lib.mjs";
 import { loadRepository } from "./repo.mjs";
+import { parseBenchmark } from "./benchmark-lib.mjs";
+import { assembleWorker } from "./worker-files.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
@@ -14,15 +16,30 @@ function trackedFiles() {
     const out = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" });
     return out.split("\0").filter(Boolean);
   } catch {
-    const workers = readdirSync(join(root, "workers")).map((name) => `workers/${name}`);
-    const playbooks = readdirSync(join(root, "playbooks")).map((name) => `playbooks/${name}/SKILL.md`);
-    return [...workers, ...playbooks];
+    const ids = readdirSync(join(root, "workers"));
+    const workers = ids.flatMap((id) => {
+      const own = [`workers/${id}/worker.yaml`, `workers/${id}/BRIEF.md`];
+      try {
+        return [...own, ...readdirSync(join(root, "workers", id, "souls")).map((name) => `workers/${id}/souls/${name}`)];
+      } catch {
+        return own;
+      }
+    });
+    const own = ids.flatMap((id) => {
+      try {
+        return readdirSync(join(root, "workers", id, "skills")).map((name) => `workers/${id}/skills/${name}/SKILL.md`);
+      } catch {
+        return [];
+      }
+    });
+    const shared = readdirSync(join(root, "skills")).map((name) => `skills/${name}/SKILL.md`);
+    return [...workers, ...own, ...shared];
   }
 }
 
 const files = trackedFiles();
 for (const path of disallowedFiles(files)) {
-  errors.push(`${path}: this file is not allowed (a Digital Worker lives in workers/<id>.md, a playbook in playbooks/<name>/SKILL.md)`);
+  errors.push(`${path}: this file is not allowed (a Digital Worker is workers/<id>/ with worker.yaml, BRIEF.md and souls/<key>.md; its own skills are workers/<id>/skills/<name>/, shared skills are skills/<name>/)`);
 }
 for (const path of files) {
   let content;
@@ -42,14 +59,30 @@ const { playbooks, workers, errors: contentErrors } = loadRepository(root, files
 errors.push(...contentErrors);
 
 // The templates must stay valid so a contributor always starts from a file that passes.
-const templatePlaybook = readFileSync(join(root, "templates/playbook/SKILL.md"), "utf8");
-for (const problem of validatePlaybook(templatePlaybook, "your-playbook")) errors.push(`templates/playbook/SKILL.md: ${problem}`);
-const templateWorker = readFileSync(join(root, "templates/worker.md"), "utf8");
-const templateProblems = validateWorker(templateWorker, "your-worker", new Set(["your-playbook"]));
-for (const problem of templateProblems) errors.push(`templates/worker.md: ${problem}`);
-if (templateProblems.length === 0 && errors.every((error) => !error.startsWith("templates/playbook"))) {
+// Every benchmark.yml present must be valid; whether a changed skill has one is scripts/benchmark.mjs check's job.
+for (const path of files.filter((file) => skillOf(file)?.file === "benchmark.yml" || file === "templates/skill/benchmark.yml")) {
+  let raw;
+  try {
+    raw = readFileSync(join(root, path), "utf8");
+  } catch {
+    continue;
+  }
+  for (const problem of parseBenchmark(raw).errors) errors.push(`${path}: ${problem}`);
+}
+const templatePlaybook = readFileSync(join(root, "templates/skill/SKILL.md"), "utf8");
+for (const problem of validatePlaybook(templatePlaybook, "your-playbook")) errors.push(`templates/skill/SKILL.md: ${problem}`);
+const templateFolder = (path) => readFileSync(join(root, "templates/worker", path), "utf8");
+const templateAssembled = assembleWorker({
+  yaml: templateFolder("worker.yaml"),
+  brief: templateFolder("BRIEF.md"),
+  souls: Object.fromEntries(readdirSync(join(root, "templates/worker/souls")).map((name) => [name.replace(/\.md$/, ""), templateFolder(`souls/${name}`)])),
+});
+const templateWorker = templateAssembled.markdown;
+const templateProblems = templateWorker ? validateWorker(templateWorker, "your-worker", new Set(["your-playbook"])) : templateAssembled.errors;
+for (const problem of templateProblems) errors.push(`templates/worker/: ${problem}`);
+if (templateProblems.length === 0 && errors.every((error) => !error.startsWith("templates/skill"))) {
   const generated = workerPackage(templateWorker, new Map([["your-playbook", readPlaybook(templatePlaybook)]]));
-  for (const problem of validatePackage(generated, "your-worker")) errors.push(`templates/worker.md: the generated package is invalid: ${problem}`);
+  for (const problem of validatePackage(generated, "your-worker")) errors.push(`templates/worker/: the generated package is invalid: ${problem}`);
 }
 
 const catalog = JSON.stringify(buildCatalog(workers.map((worker) => workerLibraryFiles(worker.markdown, playbooks).entry)));

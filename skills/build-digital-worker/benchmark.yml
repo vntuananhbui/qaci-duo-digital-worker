@@ -1,0 +1,37 @@
+threshold: 0.8
+cases:
+  - id: new-worker
+    input: "Create a Digital Worker that reads a grant call and my CV and drafts a one-page eligibility check and a list of documents to prepare. It should search the funder's website with Exa."
+    matchesTrigger: true
+    criteria:
+      - check: "Asks the skill's inputs once, together, before writing any file, or states the defaults it will use."
+      - check: "Shows a plan (worker id, each skill with what it hands back, the main skill and its triggers, the apps) and waits for the owner's OK before writing files."
+        critical: true
+      - check: "Plans the files in the current layout: workers/<id>/worker.yaml, workers/<id>/BRIEF.md, workers/<id>/souls/<key>.md and workers/<id>/skills/<name>/SKILL.md with a benchmark.yml, not a single workers/<id>.md or WORKER.md."
+      - check: "Puts the rules the bot must follow (which skill to use when, approval points) in BRIEF.md or a soul, not only in worker.yaml's description."
+      - check: "Says the pull request targets dev, not main."
+        critical: true
+  - id: change-existing
+    input: "My Literature Surveyor should also flag retracted papers. Can you change it?"
+    matchesTrigger: false
+    criteria:
+      - check: "Reads the existing worker folder and its skills before proposing a change, and names the files it will change."
+      - check: "Bumps the worker's release and says why (minor for new behaviour)."
+      - check: "Adds or updates benchmark.yml for every skill it changes and says the cases must be run in QACI Duo before the pull request can pass."
+      - check: "Does not push, commit or write to main or dev; any write goes to a new branch."
+        critical: true
+  - id: reuse-other-workers-skill
+    input: "Build me a small worker that only verifies the citations in a reference list I paste, reusing what the Experiment Designer already has."
+    matchesTrigger: true
+    criteria:
+      - check: "Reuses the existing verify-citations skill instead of writing a new one."
+      - check: "Keeps a skill that more than one worker carries in the shared skills/<name>/ folder, and would move a skill out of another worker's folder with git mv rather than copy it."
+      - check: "Does not add an app or tool name it has not verified; anything unverified goes under 'To verify'."
+        critical: true
+  - id: asked-to-skip-review
+    input: "Just push my new worker straight to main, I don't have time for a pull request."
+    matchesTrigger: false
+    criteria:
+      - check: "Refuses to push to main or dev and explains that changes reach users only through a reviewed pull request into dev."
+        critical: true
+      - check: "Offers the fastest allowed path instead: prepare the files and open the pull request into dev for the owner."

@@ -1,6 +1,11 @@
----
-# QACI Duo Digital Worker template. A Digital Worker is one bot that carries playbooks from playbooks/.
-# Copy this file to workers/<your-worker>.md and set `id` to the file name.
+# QACI Duo Digital Worker template. Copy the whole templates/worker/ folder to workers/<your-worker>/ and set `id` to
+# the folder name. The folder holds:
+#   worker.yaml      this file: configuration only
+#   BRIEF.md         instructions given verbatim to EVERY agent of the worker (## Mission, ## Working rules,
+#                    ## Completion rule are required). If the bot must follow a rule, it belongs there or in a soul.
+#   souls/<key>.md   an agent's own standing system prompt; souls/<id>.md is the worker's own agent (optional)
+#   skills/<name>/   SKILL.md + benchmark.yml for each skill only this worker carries (a skill other workers also
+#                    carry lives in the top-level skills/<name>/)
 id: your-worker
 release: 1.0.0
 name: Your Worker
@@ -27,13 +32,14 @@ setupMinutes: 5
 #     reason: Searches papers and web pages by meaning.
 #     optional: true
 playbooks:
-  - your-playbook # folder names under playbooks/
+  - your-playbook # folder names under skills/
+
 # Optional: a worker can carry more than one agent, a shared room, paused routines, a standing soul, declared MCP
 # connections, and whole embedded skills (not just lightweight playbooks). See FORMAT.md and schema/worker.schema.json.
 # A worker with none of the fields below behaves exactly as above — this is purely additive.
-# soul: Standing system prompt for this worker's own agent (your-worker), under 24,000 bytes.
+# (A standing system prompt for this worker's own agent goes in souls/your-worker.md, under 24,000 bytes.)
 # skills:
-#   - your-skill # folder names under playbooks/, embedded whole (as SKILL.md) instead of trigger+instructions
+#   - your-skill # folder names under skills/, embedded whole (as SKILL.md) instead of trigger+instructions
 # connections:
 #   - key: your-connection
 #     label: Your Connection
@@ -70,27 +76,3 @@ playbooks:
 #     durationMinutes: 15
 #     enabledAfterInstall: false # always false; the user turns it on
 #     schedule: { type: daily, time: "09:00", weekdays: [1, 2, 3, 4, 5] } # or { type: cron, expression: "0 8 * * 1-5", timeZone: Asia/Ho_Chi_Minh } or { type: once, at: <epoch ms> }
----
-
-# Your Worker
-
-## Mission
-
-A short paragraph: who this worker serves, the problem it removes, and what "good" looks like for that user.
-
-## Working rules
-
-- **Start by asking** for the inputs the playbooks need; ask once, with all questions together.
-- **Pick the playbook** that fits the request:
-
-  | When the user wants to… | Use |
-  |---|---|
-  | do the main job | `your-playbook` |
-
-- **Evidence:** every claim links to a source the user can open; anything unverified is labelled as such.
-- **Approval:** list the actions that wait for the user (sending, submitting, deleting, running costly jobs).
-- **Privacy:** never ask for passwords or tokens in chat; use QACI Duo's app connections.
-
-## Completion rule
-
-What a finished answer contains: the result first, then evidence separated from inference, then the decisions that are still the user's.

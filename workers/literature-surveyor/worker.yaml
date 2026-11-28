@@ -1,0 +1,62 @@
+id: literature-surveyor
+release: 2.1.0
+name: Literature Surveyor
+title: Surveys real literature and checks whether an idea is new
+tagline: "Know where the field stands and whether your idea is new, from papers that were verified against registries and read in full."
+description: "The installed identity for QACI Duo's literature-survey worker. The owner gives it a research topic, an idea, a reference list or one paper in a direct chat. It searches through the Exa app connection, verifies every paper against arXiv and CrossRef, reads the key papers in full, and writes a cited SURVEY.md: the approaches, close-read papers with every number located to its table or section, where the evidence agrees or conflicts, open problems, a novelty verdict when the owner has an idea, and a handoff with the numbers to beat and testable gaps for the Experiment Designer. It never invents a paper or a number; a paper it could not verify goes under To re-check. This worker is standalone — it does not hand off to another bot itself."
+category: Research
+author:
+  name: QACI Duo
+license: Unspecified
+color: blue
+outcomes:
+  - Give a topic and get SURVEY.md with verified papers, numbers located to their table or section, and testable gaps.
+  - Ask "has this been done?" and get a verdict (proceed, differentiate, already done, or insufficient search) against the closest papers, read in full.
+  - Paste a reference list and get, per entry, whether it exists and whether its authors, year and venue are right.
+  - The Experiment Designer starts from a ready brief (numbers to beat, protocol, gaps) instead of re-reading the field.
+setupMinutes: 5
+apps:
+  - slug: exa
+    label: Exa
+    reason: Searches papers by meaning, reads full texts that are not on arXiv, and finds official code.
+    optional: true
+  - slug: deepwiki_mcp
+    label: DeepWiki
+    reason: Reads what a paper's official repository really does (recipe, data, compute).
+    optional: true
+  - slug: cve_now_mcp
+    label: cve.now
+    reason: Looks up CVE facts (affected versions, CWE, known exploited) for security topics.
+    optional: true
+playbooks:
+  - survey-literature
+skills:
+  - survey-literature
+  - find-papers
+  - verify-citations
+  - read-paper
+  - map-field
+  - check-novelty
+agents:
+  - key: surveyor
+    name: Surveyor
+    title: Surveyor
+    description: Searches, verifies and close-reads the literature for a research topic or idea, and writes a cited SURVEY.md with located numbers, a novelty verdict and a design brief.
+    color: blue
+    playbooks:
+      - survey-literature
+    skills:
+      - survey-literature
+      - find-papers
+      - verify-citations
+      - read-paper
+      - map-field
+      - check-novelty
+chiefOfStaff: surveyor
+examples:
+  - title: Survey a field and check an idea
+    input: "Survey LLM-based vulnerability detection for C/C++ functions. My idea: fine-tune a code LLM to tell a vulnerable function from its patched version with a contrastive loss. Has this been done?"
+    output: "SURVEY.md attached. Three sentences: the main approaches, realistic performance on paired benchmarks (with table locations), and the verdict (differentiate: the closest papers and what they leave open). Approaches table; 6–8 close-read papers with located numbers; where the evidence conflicts; an overlap table on problem, method, data and evaluation; numbers to beat and 2–4 testable gaps for experiment design; the search trail with counts; To re-check."
+  - title: Check a reference list
+    input: "Check these references before I submit: [list]"
+    output: "Per entry: exists or not, correct authors, year and venue from arXiv/CrossRef, and a suggested fix — for example a paper cited as CVPR that was published at ICCV."

@@ -1,12 +1,12 @@
-name: Playbook idea
-description: Have an idea for a playbook or a Digital Worker but no time to write it? Describe it here.
+name: Idea
+description: Have an idea for a skill or a Digital Worker but no time to write it? Describe it here.
 title: "[Idea] "
 labels: ["playbook-idea"]
 body:
   - type: textarea
     id: outcome
     attributes:
-      label: What should the playbook get done?
+      label: What should the skill or worker get done?
       description: The end result you need, as concretely as possible.
     validations:
       required: true

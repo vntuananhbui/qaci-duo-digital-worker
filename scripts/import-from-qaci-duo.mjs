@@ -5,7 +5,7 @@
 //   node scripts/import-from-qaci-duo.mjs <path/to/qaciduo-adlc.json> adlc
 //   node scripts/import-from-qaci-duo.mjs <path/to/qaciduo-app-rebuild.json> craft
 //
-// It writes workers/<id>.md and playbooks/<skill-name>/SKILL.md for every skill the source package carries, then
+// It writes workers/<id>/ (worker.yaml, BRIEF.md, souls/) and workers/<id>/skills/<skill-name>/SKILL.md for every skill the source package carries, then
 // self-checks the result with this repository's own validateWorker/workerPackage/validatePackage — the same gate
 // `npm test` runs — before anything is written to disk, so a bad source file fails loudly instead of landing.
 //
@@ -20,6 +20,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stringify as stringifyYaml } from "yaml";
 import { readPlaybook, validatePackage, validateWorker, workerPackage } from "./lib.mjs";
+import { splitWorker } from "./worker-files.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -93,7 +94,7 @@ if (!pkg.agents.some((agent) => agent.key === config.leaderKey)) {
   throw new Error(`${sourcePath}: no agent with key "${config.leaderKey}" (set IMPORTS.${importKey}.leaderKey to the real lead's key)`);
 }
 
-// --- Playbook files: one playbooks/<name>/SKILL.md per skill the source embeds, synthesizing the fields this
+// --- Playbook files: one skills/<name>/SKILL.md per skill the source embeds, synthesizing the fields this
 // repository's own SKILL.md convention requires (title, triggers, license, author) but the real skill format
 // (shared/skill-md.ts) does not — it only has name/description/tags.
 const needsQuote = (value) => value.includes(": ") || /^[-?:&*!|>%@`"']/.test(value) || value.endsWith(":");
@@ -127,16 +128,17 @@ function writePlaybookFile(skill) {
     "",
   ].join("\n");
   const content = `${frontmatter}${body.replace(/^\n+/, "\n")}`;
-  const dir = resolve(root, "playbooks", skill.name);
+  // A ported worker owns its skills: workers/<id>/skills/<name>/ (move one to skills/ when a second worker carries it).
+  const dir = resolve(root, "workers", importKey, "skills", skill.name);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "SKILL.md"), content);
   return content;
 }
 
 const skillsByName = new Map((pkg.skills?.entries ?? []).map((skill) => [skill.name, writePlaybookFile(skill)]));
-console.log(`Wrote ${skillsByName.size} playbooks/*/SKILL.md file(s).`);
+console.log(`Wrote ${skillsByName.size} skills/*/SKILL.md file(s).`);
 
-// --- workers/<id>.md: the real agents (keys unchanged, so each agent's own soul's {{agent:<key>}} self-references
+// --- workers/<id>/: the real agents (keys unchanged, so each agent's own soul's {{agent:<key>}} self-references
 // still resolve) plus the worker's own framing from IMPORTS above. `pkg.agents` already has `agent.soul`,
 // `agent.skills` and `agent.connections` in the real shape this repository's workerPackage() also produces, so
 // they carry over directly — nothing here is re-derived or guessed.
@@ -218,7 +220,7 @@ const markdown = `---\n${yamlText}\n---\n\n${body}`;
 const playbookNames = new Set(skillsByName.keys());
 const workerErrors = validateWorker(markdown, importKey, playbookNames);
 if (workerErrors.length) {
-  console.error(`workers/${importKey}.md would be invalid:`);
+  console.error(`workers/${importKey}/ would be invalid:`);
   for (const error of workerErrors) console.error(`- ${error}`);
   process.exit(1);
 }
@@ -226,10 +228,17 @@ const parsedPlaybooks = new Map([...skillsByName.entries()].map(([name, raw]) =>
 const generated = workerPackage(markdown, parsedPlaybooks);
 const packageErrors = validatePackage(generated, importKey);
 if (packageErrors.length) {
-  console.error(`The package generated from workers/${importKey}.md would be invalid:`);
+  console.error(`The package generated from workers/${importKey}/ would be invalid:`);
   for (const error of packageErrors) console.error(`- ${error}`);
   process.exit(1);
 }
 
-writeFileSync(resolve(root, "workers", `${importKey}.md`), markdown);
-console.log(`Wrote workers/${importKey}.md from ${sourcePath} (release ${pkg.release}).`);
+// The folder form (scripts/worker-files.mjs): worker.yaml, BRIEF.md (teamBrief + Mission/Working rules/Completion
+// rule, given to every agent) and souls/<key>.md.
+const parts = splitWorker(markdown);
+const workerDir = resolve(root, "workers", importKey);
+mkdirSync(resolve(workerDir, "souls"), { recursive: true });
+writeFileSync(resolve(workerDir, "worker.yaml"), parts.yaml);
+writeFileSync(resolve(workerDir, "BRIEF.md"), parts.brief);
+for (const [key, soul] of Object.entries(parts.souls)) writeFileSync(resolve(workerDir, "souls", `${key}.md`), soul);
+console.log(`Wrote workers/${importKey}/ (worker.yaml, BRIEF.md, ${Object.keys(parts.souls).length} soul(s)) from ${sourcePath} (release ${pkg.release}).`);

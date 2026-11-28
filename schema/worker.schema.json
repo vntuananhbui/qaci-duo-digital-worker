@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/vanhaito/qaci-duo-playbooks/main/schema/worker.schema.json",
   "title": "QACI Duo Digital Worker",
-  "description": "The YAML frontmatter of workers/<id>.md, as checked by validateWorker() in scripts/lib.mjs. This schema documents that hand-written validator; scripts/lib.mjs remains the source of truth and the authoritative CI gate — this is tooling/editor documentation only. `agents`, `chiefOfStaff`, `rooms`, `routines`, `soul`, `connections`, `skills` and `teamBrief` are an optional extension: a worker with none of them is exactly the single-agent, playbooks-only shape every worker file used before this extension. See FORMAT.md.",
+  "description": "The content of workers/<id>/worker.yaml (souls come from souls/<key>.md and teamBrief from BRIEF.md, never from this file), as checked by validateWorker() in scripts/lib.mjs. This schema documents that hand-written validator; scripts/lib.mjs remains the source of truth and the authoritative CI gate — this is tooling/editor documentation only. `agents`, `chiefOfStaff`, `rooms`, `routines`, `soul`, `connections`, `skills` and `teamBrief` are an optional extension: a worker with none of them is exactly the single-agent, playbooks-only shape every worker file used before this extension. See FORMAT.md.",
   "type": "object",
   "required": [
     "id", "release", "name", "title", "tagline", "description", "category", "author", "license", "color", "outcomes"
   ],
   "properties": {
-    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Must equal the file name workers/<id>.md." },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Must equal the folder name: workers/<id>/worker.yaml." },
     "release": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
     "name": { "type": "string", "minLength": 1, "maxLength": 100 },
     "title": { "type": "string", "minLength": 1, "maxLength": 200 },
@@ -45,12 +45,12 @@
       }
     },
     "playbooks": {
-      "description": "1-30 folder names from playbooks/, each carried as a lightweight trigger+instructions pair. A worker needs playbooks, skills, or both.",
+      "description": "1-30 folder names from skills/, each carried as a lightweight trigger+instructions pair. A worker needs playbooks, skills, or both.",
       "type": "array", "minItems": 1, "maxItems": 30,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
     },
     "skills": {
-      "description": "1-30 folder names from playbooks/, each embedded whole as a real importable skill (package.skills.entries[]) instead of a lightweight playbook. A worker needs playbooks, skills, or both.",
+      "description": "1-30 folder names from skills/, each embedded whole as a real importable skill (package.skills.entries[]) instead of a lightweight playbook. A worker needs playbooks, skills, or both.",
       "type": "array", "minItems": 1, "maxItems": 30,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
     },
