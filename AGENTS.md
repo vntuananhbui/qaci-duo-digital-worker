@@ -6,7 +6,8 @@ Guidance for coding agents (Claude Code, Codex, Cursor and others) working in th
 ## What this repository is
 
 The source of the Digital Workers that the QACI Duo app installs. Content is Markdown: a folder per bot, `workers/<id>/` (its
-`WORKER.md` and the skills only it carries, `workers/<id>/skills/<name>/SKILL.md`), and `skills/<name>/SKILL.md` for a
+`worker.yaml` configuration, `BRIEF.md` given to every agent, `souls/<key>.md` per agent, and the skills only it
+carries, `workers/<id>/skills/<name>/SKILL.md`), and `skills/<name>/SKILL.md` for a
 capability several workers share. A merge runs `.github/workflows/publish.yml`, which builds `dist/` and
 force-pushes it: `dev` to the `library-dev` branch (read by the dev QACI Duo), `main` to the `library` branch (read
 by production). The app reads only those branches (`catalog.json`, `packages/<id>.json`, `skills/<name>/SKILL.md`).
@@ -17,7 +18,9 @@ minutes: treat a merge to `main` as a release.
 
 | Path | What it is |
 |---|---|
-| `workers/<id>/WORKER.md` | One Digital Worker: YAML frontmatter (identity, `release`, `apps`, `playbooks`, `skills`, `agents[]` with `soul`, …) and a body with `## Mission`, `## Working rules`, `## Completion rule` |
+| `workers/<id>/worker.yaml` | One Digital Worker's configuration: identity, `release`, `apps`, `playbooks`, `skills`, `agents[]`, rooms, routines (never `soul` or `teamBrief`) |
+| `workers/<id>/BRIEF.md` | Instructions every agent of the worker gets verbatim (the package's `team.brief`): `## Mission`, `## Working rules`, `## Completion rule` |
+| `workers/<id>/souls/<key>.md` | One agent's standing system prompt (`souls/<id>.md` for the worker's own agent) |
 | `workers/<id>/skills/<name>/` | A skill only this worker carries: `SKILL.md`, `benchmark.yml` (cases, CONTRIBUTING.md "Benchmark a skill"), `runs/{local,dev}.json` (what a QACI Duo answered, bound by SHA-256 to the SKILL.md and benchmark.yml it ran with) |
 | `skills/<name>/` | The same files for a skill two or more workers carry (or none yet). Move a skill here when a second worker needs it; names are unique across both places |
 | `REVIEW_CHECKLIST.md` | The standard every pull request is reviewed against |
@@ -53,7 +56,7 @@ node scripts/benchmark.mjs check --base origin/dev --env any   # every changed s
 - **SKILL.md size:** the body at most 24,000 characters when carried as a playbook; the whole file at most 256 KB.
   Reviewers (not the validator) also expect the sections `# Title`, `## When to use` (with a **Not for:** line),
   `## Inputs`, `## Procedure`, `## Output`, `## Quality checklist`, `## Guardrails`, `## Example`.
-- **Worker:** `id` = file name, semantic `release`, `tagline` ≤160, `description` ≤2,000, `soul` <24,000 bytes,
+- **Worker:** `id` = folder name, semantic `release`, `tagline` ≤160, `description` ≤2,000, each soul and `BRIEF.md` <24,000 bytes,
   at least one `playbooks` or `skills` entry, every name must exist as the worker's own `workers/<id>/skills/<name>/SKILL.md` or a shared
   `skills/<name>/SKILL.md`; a worker may not carry another worker's own skill, and a skill in a worker's folder must be
   carried by that worker.
@@ -71,7 +74,9 @@ Knowing this decides how to write a skill. The relevant app code is `server/inst
 - **`skills:` are listed by path.** Every enabled skill appears under *Imported skills* with the path of its
   `SKILL.md`. The bot reads it with its file tools. It is not Claude Code's Skill tool, so write "open the `<name>`
   skill (read its SKILL.md; the exact path is in your Imported skills list)", never "call the skill".
-- **Carry a worker's main procedure as both**, and have the `soul` say to open the skill when it is not already in
+- **Rules reach a bot only from `BRIEF.md`, a soul or a skill.** `worker.yaml` fields such as `description` describe
+  the worker to people; a rule written only there is never followed.
+- **Carry a worker's main procedure as both**, and have the soul (`souls/<key>.md`) say to open the skill when it is not already in
   the instructions. Then a message that misses every trigger still gets the full procedure.
 - **`agents[]` lists are subsets.** When you add a playbook or skill to a worker, also add it to `agents[].playbooks`
   / `agents[].skills` of each agent that should use it. Connections default to none per agent.
@@ -94,7 +99,7 @@ A worker reaches outside tools in one of two ways. Pick one per tool.
 | Use for | A service Composio already hosts: Exa, GitHub, Gmail, DeepWiki, cve.now, … | An MCP server you run, such as an internal knowledge base |
 | Fields | `slug`, `label`, `reason`, `optional` | `key`, `label`, `reason`, `mcp: {transport, url, valueNames}` |
 | Who gets it | The whole worker | Only the agents that list its `key` in `agents[].connections` |
-| Example | `workers/literature-surveyor/WORKER.md` | `workers/adlc/WORKER.md` (`qaci-data`) |
+| Example | `workers/literature-surveyor/worker.yaml` | `workers/adlc/worker.yaml` (`qaci-data`) |
 
 ### Required: verify before you add an app or a connection
 

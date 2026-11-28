@@ -68,7 +68,7 @@ These rules are what make a result trustworthy. A result that breaks one of them
 
 | ID | Rule | Source | Method | Severity | Pass when |
 |---|---|---|---|---|---|
-| A-01 | Only files under `workers/<id>/` (`WORKER.md`; `skills/<name>/SKILL.md`, `benchmark.yml`, `runs/{local,dev}.json`), shared `skills/<name>/`, and README.md (when a table changed) are modified, unless the PR is explicitly a tooling change | PR template | CI+ | MAJOR | Every changed path matches the allowed list, or the PR title starts with `chore:`/`ci:`/`docs:` and touches no worker or skill content |
+| A-01 | Only files under `workers/<id>/` (`worker.yaml`, `BRIEF.md`, `souls/<key>.md`; `skills/<name>/SKILL.md`, `benchmark.yml`, `runs/{local,dev}.json`), shared `skills/<name>/`, and README.md (when a table changed) are modified, unless the PR is explicitly a tooling change | PR template | CI+ | MAJOR | Every changed path matches the allowed list, or the PR title starts with `chore:`/`ci:`/`docs:` and touches no worker or skill content |
 | A-02 | The `release` of **every** worker that carries a changed playbook or skill, or whose own file changed, is bumped | FORMAT.md, CONTRIBUTING.md | CI+ | BLOCKER | For each affected worker, the PR's `release` is a higher semver than the base branch's |
 | A-03 | The bump size matches the change: patch for wording, minor for new capability, major for a removed playbook, app or changed output shape | Convention (semver) | LLM | MINOR | The bump matches the largest change in the diff |
 | A-04 | A new or renamed worker is listed in README's *Available today* table | AGENTS.md | CI+ | MAJOR | The worker's `id` appears in that table |
@@ -132,20 +132,21 @@ See CONTRIBUTING.md "Benchmark a skill". B-01 to B-04 are enforced by the `Bench
 | P-18 | A helper script is inline in the skill as a code block, not a separate file beside the SKILL.md | AGENTS.md | CI | BLOCKER | |
 | P-14 | Written in English, short sentences, active voice, consistent terms; tells the bot to reply in the owner's language | AGENTS.md, CONTRIBUTING.md | LLM | MINOR | |
 
-## W. Worker (`workers/<id>/WORKER.md`)
+## W. Worker (`workers/<id>/`: `worker.yaml`, `BRIEF.md`, `souls/`)
 
 | ID | Rule | Source | Method | Severity | Pass when |
 |---|---|---|---|---|---|
 | W-01 | `tagline`, `description` and `outcomes` match what the carried playbooks actually do | CONTRIBUTING.md | LLM | MAJOR | No outcome promised that no playbook produces |
 | W-02 | `description` says what the worker does **and never does** | FORMAT.md | LLM | MAJOR | Has an explicit limit |
-| W-03 | `## Working rules` says which playbook or skill to use when | FORMAT.md | LLM | MAJOR | Every carried playbook/skill is mentioned with its situation |
-| W-04 | `## Completion rule` defines when the work is done and what is handed back | FORMAT.md | LLM | MAJOR | A concrete stopping condition |
+| W-03 | `BRIEF.md` `## Working rules` says which playbook or skill to use when | FORMAT.md | LLM | MAJOR | Every carried playbook/skill is mentioned with its situation |
+| W-04 | `BRIEF.md` `## Completion rule` defines when the work is done and what is handed back | FORMAT.md | LLM | MAJOR | A concrete stopping condition |
 | W-05 | The main procedure is carried as both playbook and skill, and the `soul` says to open the skill when the playbook was not injected | CONTRIBUTING.md | LLM | MINOR | N/A for a worker with only one carrying mode by design (state why) |
 | W-06 | A worker is a role carrying several procedures; a single procedure is a playbook, not a worker | CONTRIBUTING.md | LLM | MINOR | |
 | W-07 | Each agent's `playbooks`/`skills`/`connections` subset is the minimum it needs; connections are given only to agents that list them | FORMAT.md | LLM | MAJOR | No agent holds a connection unrelated to its title/description |
 | W-08 | `routines` prompts are safe to run unattended once switched on: no send, publish, delete or spend without an Ask-first step | FORMAT.md, AGENTS.md | LLM | BLOCKER | Every routine that acts outward pauses for approval |
 | W-10 | A playbook or skill added to the worker is also added to `agents[].playbooks` / `agents[].skills` of each agent that should use it | AGENTS.md | LLM | MAJOR | N/A for a worker without `agents` |
 | W-11 | A worker that needs an app says, in its soul or skill, what to do when app access is off (apps start switched off after install) | AGENTS.md | LLM | MAJOR | N/A when no app is declared |
+| W-13 | Every rule the bot must follow is in `BRIEF.md`, a soul or a skill, never only in `worker.yaml` `description`/`outcomes` (which no bot reads); `BRIEF.md` holds rules for all agents, a soul only that agent's | FORMAT.md | LLM | MAJOR | No instruction appears only in a field people read |
 | W-12 | A skill sits in the folder of its only worker, or in `skills/` when two or more workers carry it; a skill that became shared was moved (with `git mv`), not copied | FORMAT.md | CI | MAJOR | `npm test` passes; no near-identical SKILL.md under two names |
 | W-09 | Not a near-duplicate of an existing worker or playbook | CONTRIBUTING.md | LLM | MAJOR | The reviewer is given the current catalog; no existing entry has the same role and outcomes |
 

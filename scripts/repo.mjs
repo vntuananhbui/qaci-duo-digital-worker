@@ -1,10 +1,12 @@
 // Reads the repository's skills and Digital Workers once, for both `npm test` and `npm run build`.
 //
-// Layout (scripts/lib.mjs WORKER_FILE, SKILL_FILE): workers/<id>/WORKER.md, the skills only that worker carries in
-// workers/<id>/skills/<name>/SKILL.md, and skills shared by several workers (or by none) in skills/<name>/SKILL.md.
+// Layout (scripts/lib.mjs WORKER_FILE, SKILL_FILE): a folder per worker, workers/<id>/ with worker.yaml, BRIEF.md and
+// souls/<key>.md (scripts/worker-files.mjs), the skills only that worker carries in workers/<id>/skills/<name>/SKILL.md,
+// and skills shared by several workers (or by none) in skills/<name>/SKILL.md.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { SKILL_FILE, WORKER_FILE, readPlaybook, splitPackage, validatePackage, validatePlaybook, validateWorker, workerPackage } from "./lib.mjs";
+import { assembleWorker } from "./worker-files.mjs";
+import { SKILL_FILE, WORKER_BRIEF, WORKER_FILE, WORKER_SOUL, readPlaybook, splitPackage, validatePackage, validatePlaybook, validateWorker, workerPackage } from "./lib.mjs";
 
 /**
  * Valid skills by name (`playbooks`, the name the package builder knows them by), where each lives (`skillDirs`),
@@ -31,9 +33,22 @@ export function loadRepository(root, paths) {
 
   const workers = [];
   const carriers = new Map(); // skill name -> worker ids that carry it
+  const read = (path) => readFileSync(join(root, path), "utf8");
+  const workerIds = new Set(paths.filter((path) => WORKER_FILE.test(path)).map((path) => WORKER_FILE.exec(path)[1]));
+  for (const path of paths.filter((path) => WORKER_BRIEF.test(path) || WORKER_SOUL.test(path))) {
+    const id = (WORKER_BRIEF.exec(path) ?? WORKER_SOUL.exec(path))[1];
+    if (!workerIds.has(id)) errors.push(`${path}: workers/${id}/worker.yaml is missing`);
+  }
   for (const path of paths.filter((path) => WORKER_FILE.test(path)).sort()) {
-    const markdown = readFileSync(join(root, path), "utf8");
     const id = WORKER_FILE.exec(path)[1];
+    const briefPath = `workers/${id}/BRIEF.md`;
+    const souls = Object.fromEntries(paths.filter((file) => WORKER_SOUL.exec(file)?.[1] === id).map((file) => [WORKER_SOUL.exec(file)[2], read(file)]));
+    const assembled = assembleWorker({ yaml: read(path), brief: paths.includes(briefPath) ? read(briefPath) : undefined, souls });
+    if (!assembled.markdown) {
+      for (const problem of assembled.errors) errors.push(`workers/${id}/${problem}`);
+      continue;
+    }
+    const markdown = assembled.markdown;
     const problems = validateWorker(markdown, id, new Set(owners.keys()));
     let carried = [];
     if (!problems.length) {
@@ -58,7 +73,7 @@ export function loadRepository(root, paths) {
   // A skill in a worker's own folder that the worker does not carry is in the wrong place.
   for (const [name, owner] of owners) {
     if (owner && !(carriers.get(name) ?? []).includes(owner)) {
-      errors.push(`${skillDirs.get(name)}/SKILL.md: workers/${owner}/WORKER.md does not carry "${name}"; add it to its playbooks or skills, or move the folder to skills/${name}/`);
+      errors.push(`${skillDirs.get(name)}/SKILL.md: workers/${owner}/worker.yaml does not carry "${name}"; add it to its playbooks or skills, or move the folder to skills/${name}/`);
     }
   }
   return { playbooks, skillDirs, workers, errors };

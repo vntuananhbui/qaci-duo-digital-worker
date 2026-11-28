@@ -1,0 +1,90 @@
+id: adlc
+release: 6.2.0
+name: ADLC
+title: Autonomous software delivery, end to end
+tagline: "One agent for the full delivery lifecycle: requirements, planning, implementation, verification and deployment, with your approval before anything ships."
+description: "QACI Duo's single-agent software worker (ADLC: Agentic Development Lifecycle). The owner assigns work in a direct chat; ADLC classifies it, writes measurable acceptance criteria, plans, implements with tests, verifies the result under real conditions, and merges. On request, it pushes to the owner's own GitHub or Azure DevOps and deploys a demo, always asking for approval before any external action."
+category: Software
+author:
+  name: QACI Duo
+license: Unspecified
+tags:
+  - software
+  - engineering
+  - adlc
+  - deployment
+color: pink
+outcomes:
+  - Assign a task and receive a verified result with test evidence, without coordinating multiple bots.
+  - "Provide a research paper and receive a working end-to-end prototype: a trained model, an interactive step-by-step demo, and an evaluation page that compares results honestly against the paper's reported figures."
+  - Share a GitHub or Azure DevOps repository link and receive the work as a pushed branch and, if you want, a ready-to-review pull request.
+  - Re-enable approval cards (SPEC, plan, push, merge) at any time without changing accounts.
+  - Publish code to your own GitHub or Azure DevOps (with a release, and an FCode Market listing on GitHub) and deploy a demo to Render, with your approval before every external step.
+setupMinutes: 10
+apps:
+  - slug: github
+    label: GitHub
+    reason: Push merged code to the owner's GitHub and create releases.
+    optional: true
+  - slug: render
+    label: Render
+    reason: Deploy a demo to Render when the owner wants a shareable link.
+    optional: true
+skills:
+  - adlc-triage
+  - adlc-feature
+  - adlc-bugfix
+  - adlc-research
+  - adlc-chore
+  - adlc-approval
+  - adlc-report
+  - adlc-paper-prototype
+  - adlc-git-local
+  - adlc-git-remote
+  - adlc-code-review
+  - adlc-verify-browser
+  - adlc-ui-preview
+  - deploy-github
+  - deploy-azure-devops
+  - deploy-render
+agents:
+  - key: bot
+    name: ADLC
+    title: ADLC
+    description: A single agent that runs the full ADLC flow — takes work, classifies and plans it, implements and verifies it, merges, publishes to GitHub/Azure DevOps and deploys a demo on request, and reports back.
+    color: pink
+    skills:
+      - adlc-triage
+      - adlc-feature
+      - adlc-bugfix
+      - adlc-research
+      - adlc-chore
+      - adlc-approval
+      - adlc-report
+      - adlc-paper-prototype
+      - adlc-git-local
+      - adlc-git-remote
+      - adlc-code-review
+      - adlc-verify-browser
+      - adlc-ui-preview
+      - deploy-github
+      - deploy-azure-devops
+      - deploy-render
+    connections:
+      - qaci-data
+chiefOfStaff: bot
+connections:
+  - key: qaci-data
+    label: QACI Data
+    reason: Search for and read research papers when the owner wants ADLC to find them, instead of sending a link or a file.
+    mcp:
+      transport: http
+      url: https://casanos-connector-prod.ptatien.com/qaci-data/mcp
+      valueNames: []
+examples:
+  - title: Fix a bug end to end
+    input: There's a bug where the export button downloads an empty CSV when a filter is active. Fix it.
+    output: "ADLC classifies it as a bugfix, writes acceptance criteria (the export respects the active filter and contains at least one row when the filtered data is not empty), plans the fix, reproduces the bug with a failing test, fixes it and commits to a work branch — optionally delegating the implementation to a subagent while it plans and reviews. ADLC then verifies under real conditions, not just its own earlier confidence, and merges. It reports back with the evidence: what was tested, the real output, and the commit."
+  - title: Turn a paper into a running prototype
+    input: Here's a link to a paper on lead-wise attention for ECG classification. Can you build a small prototype that reproduces the core method?
+    output: ADLC classifies it as paper-prototype, confirms scope with the owner, and plans the smallest reproduction behind a flag that preserves today's behavior when off. It implements it and runs small checks (unit test, single-batch overfit, flag-off parity) before proposing a full run. ADLC verifies the result against the paper's own claims, then reports what matched, what did not, and what still needs the owner's decision before any larger run.

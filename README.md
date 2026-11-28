@@ -9,8 +9,8 @@ The library of **Digital Workers** and **playbooks** that QACI Duo installs from
   [FORMAT.md](FORMAT.md#playbook-vs-skill-the-same-skillmd-file-two-ways-to-carry-it).
 
 ```
-workers/<id>/WORKER.md + skills/<name>/ ─┐
-skills/<name>/  (shared skills) ─────────┴─► PR into dev ─► CI (validate + benchmark) + code-owner review
+workers/<id>/ (worker.yaml, BRIEF.md, souls/, skills/) ─┐
+skills/<name>/  (shared skills) ─────────────────────────┴─► PR into dev ─► CI (validate + benchmark) + code-owner review
    ─► dev (`library-dev`, QACI Duo dev) ─► benchmark on dev ─► PR dev → main ─► main (`library`, production)
 ```
 
@@ -18,10 +18,10 @@ skills/<name>/  (shared skills) ─────────┴─► PR into dev
 
 | Digital Worker | What it does | Agents | Carries | Apps |
 |---|---|---|---|---|
-| **Literature Surveyor** (`workers/literature-surveyor/WORKER.md`) | Searches, verifies and close-reads papers; writes a cited `SURVEY.md` with a novelty verdict and a brief for experiment design | `surveyor` | playbook `survey-literature` + 6 skills | Exa; DeepWiki, cve.now optional |
-| **Experiment Designer** (`workers/experiment-designer/WORKER.md`) | Turns an idea and a survey into a reviewed plan with pass and fail criteria: `DESIGN.md` + `DESIGN.html` | `designer` | playbook `design-experiments` + 9 skills | Exa; DeepWiki optional |
-| **Social Media Marketer** (`workers/social-media-marketer/WORKER.md`) | Plans a month of posts, writes a daily post from fresh news, drafts replies and a weekly report; a human approves anything that goes public | `marketer` | 6 job playbooks + 14 skills | Facebook, Instagram, LinkedIn, Exa, Google Analytics, Google Sheets; Threads, TikTok optional |
-| **ADLC** (`workers/adlc/WORKER.md`) | Autonomous software delivery, end to end | `bot` | 16 `adlc-*` / `deploy-*` skills | GitHub, Render; MCP slot `qaci-data` |
+| **Literature Surveyor** (`workers/literature-surveyor/`) | Searches, verifies and close-reads papers; writes a cited `SURVEY.md` with a novelty verdict and a brief for experiment design | `surveyor` | playbook `survey-literature` + 6 skills | Exa; DeepWiki, cve.now optional |
+| **Experiment Designer** (`workers/experiment-designer/`) | Turns an idea and a survey into a reviewed plan with pass and fail criteria: `DESIGN.md` + `DESIGN.html` | `designer` | playbook `design-experiments` + 9 skills | Exa; DeepWiki optional |
+| **Social Media Marketer** (`workers/social-media-marketer/`) | Plans a month of posts, writes a daily post from fresh news, drafts replies and a weekly report; a human approves anything that goes public | `marketer` | 6 job playbooks + 14 skills | Facebook, Instagram, LinkedIn, Exa, Google Analytics, Google Sheets; Threads, TikTok optional |
+| **ADLC** (`workers/adlc/`) | Autonomous software delivery, end to end | `bot` | 16 `adlc-*` / `deploy-*` skills | GitHub, Render; MCP slot `qaci-data` |
 
 The two research workers are standalone: neither hands work to another bot. The owner brings `SURVEY.md` from the
 Surveyor to the Designer. The current release of each worker is its `release` field, also

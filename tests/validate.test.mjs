@@ -6,6 +6,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { loadRepository } from "../scripts/repo.mjs";
+import { assembleWorker, splitWorker } from "../scripts/worker-files.mjs";
 import { test } from "node:test";
 import {
   buildCatalog, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker,
@@ -167,7 +168,12 @@ test("a sample playbook and worker pass validation", () => {
 test("the templates pass so contributors start from valid files", () => {
   const template = read("templates/skill/SKILL.md");
   assert.deepEqual(validatePlaybook(template, "your-playbook"), []);
-  const dw = read("templates/worker.md");
+  const { markdown: dw, errors } = assembleWorker({
+    yaml: read("templates/worker/worker.yaml"),
+    brief: read("templates/worker/BRIEF.md"),
+    souls: { "your-worker": read("templates/worker/souls/your-worker.md") },
+  });
+  assert.deepEqual(errors, []);
   assert.deepEqual(validateWorker(dw, "your-worker", new Set(["your-playbook"])), []);
   assert.deepEqual(validatePackage(workerPackage(dw, new Map([["your-playbook", readPlaybook(template)]])), "your-worker"), []);
 });
@@ -230,11 +236,12 @@ test("token-shaped strings are found", () => {
 
 test("only the known layout is allowed", () => {
   assert.deepEqual(disallowedFiles([
-    "workers/a-b/WORKER.md", "workers/a-b/skills/c-d/SKILL.md", "skills/a-b/SKILL.md",
+    "workers/a-b/worker.yaml", "workers/a-b/BRIEF.md", "workers/a-b/souls/main_agent.md", "workers/a-b/skills/c-d/SKILL.md", "skills/a-b/SKILL.md",
+    "templates/worker/worker.yaml", "templates/worker/BRIEF.md", "templates/worker/souls/your-worker.md",
     "README.md", "AGENTS.md", "CLAUDE.md", "scripts/lib.mjs", ".github/workflows/validate.yml",
   ]), []);
   const bad = [
-    "workers/a-b.md", "workers/a/worker.md", "workers/a/notes.md", "workers/a/skills/b/run.sh", "workers/a/skills/b/c/SKILL.md",
+    "workers/a-b.md", "workers/a/WORKER.md", "workers/a/worker.yml", "workers/a/notes.md", "workers/a/souls/x.txt", "workers/a/souls/b/c.md", "templates/worker.md", "workers/a/skills/b/run.sh", "workers/a/skills/b/c/SKILL.md",
     "skills/a/run.sh", "skills/a/b/SKILL.md", "skills/Upper/SKILL.md", "image.png", "packages/a.md",
   ];
   assert.deepEqual(disallowedFiles(bad), bad);
@@ -251,21 +258,29 @@ test("a skill lives with its only worker, or in skills/ when shared; names are u
     .replace(/^id: sample-worker$/m, `id: ${id}`)
     .replace(/^playbooks:\n(?:  - .*\n)+/m, `playbooks:\n${names.map((name) => `  - ${name}`).join("\n")}\n`)
     .replace(/^skills:\n(?:  - .*\n)+/m, "");
+  const putWorker = (id, names) => {
+    const parts = splitWorker(carrying(id, names));
+    put(`workers/${id}/worker.yaml`, parts.yaml);
+    put(`workers/${id}/BRIEF.md`, parts.brief);
+    return [`workers/${id}/worker.yaml`, `workers/${id}/BRIEF.md`];
+  };
   try {
-    put("workers/one/WORKER.md", carrying("one", ["own-skill", "shared-skill"]));
+    const paths = [
+      ...putWorker("one", ["own-skill", "shared-skill"]),
+      ...putWorker("two", ["shared-skill"]),
+      "workers/one/skills/own-skill/SKILL.md", "skills/shared-skill/SKILL.md",
+    ];
     put("workers/one/skills/own-skill/SKILL.md", skill("own-skill"));
-    put("workers/two/WORKER.md", carrying("two", ["shared-skill"]));
     put("skills/shared-skill/SKILL.md", skill("shared-skill"));
-    const paths = ["workers/one/WORKER.md", "workers/one/skills/own-skill/SKILL.md", "workers/two/WORKER.md", "skills/shared-skill/SKILL.md"];
     const ok = loadRepository(dir, paths);
     assert.deepEqual(ok.errors, []);
     assert.equal(ok.workers.length, 2);
     assert.equal(ok.skillDirs.get("own-skill"), "workers/one/skills/own-skill");
 
-    put("workers/two/WORKER.md", carrying("two", ["own-skill"]));
+    putWorker("two", ["own-skill"]);
     has(loadRepository(dir, paths).errors, 'belongs to workers/one/; move it to skills/own-skill/');
 
-    put("workers/two/WORKER.md", carrying("two", ["shared-skill"]));
+    putWorker("two", ["shared-skill"]);
     put("workers/two/skills/shared-skill/SKILL.md", skill("shared-skill"));
     has(loadRepository(dir, [...paths, "workers/two/skills/shared-skill/SKILL.md"]).errors, "must be unique across the repository");
 

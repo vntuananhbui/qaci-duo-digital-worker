@@ -71,9 +71,9 @@ If a tool is missing or fails, say so and stop at that step; never work around i
 
 1. **Get the library and its rules.**
    `git clone --depth 1 https://github.com/vntuananhbui/qaci-duo-digital-worker.git dw-library && cd dw-library`.
-   Read `AGENTS.md`, `FORMAT.md`, `CONTRIBUTING.md`, `templates/worker.md` and `templates/skill/SKILL.md` in full:
+   Read `AGENTS.md`, `FORMAT.md`, `CONTRIBUTING.md`, `templates/worker/` (all three files) and `templates/skill/SKILL.md` in full:
    they are the current rules and override anything in this skill that disagrees.
-   For a change, also read `workers/<id>/WORKER.md` and every skill it carries (in `workers/<id>/skills/` or the
+   For a change, also read `workers/<id>/` (`worker.yaml`, `BRIEF.md`, `souls/`) and every skill it carries (in `workers/<id>/skills/` or the
    shared `skills/`).
    *Check:* `ls workers/*/skills skills` — note every existing skill you could reuse instead of writing a new one.
    Reusing a skill that sits in another worker's folder means moving it to `skills/<name>/` (`git mv`) in the same
@@ -88,9 +88,13 @@ If a tool is missing or fails, say so and stop at that step; never work around i
    - for a change: every file that changes, and the new `release`.
    Wait for the owner's OK. A skill shared by other workers changes them too: name them and bump their `release`.
 4. **Write the files**, starting from the templates, following `FORMAT.md` and `AGENTS.md` exactly:
-   - `workers/<id>/WORKER.md`: frontmatter (`id` = folder name, `release`, `tagline` ≤160, `description` ≤2,000, `apps`,
-     `playbooks`, `skills`, `agents[]` with a `soul` that says to open the main skill when it was not injected, and
-     the same `playbooks`/`skills` lists), then `## Mission`, `## Working rules`, `## Completion rule`.
+   - `workers/<id>/worker.yaml`: `id` = folder name, `release`, `tagline` ≤160, `description` ≤2,000, `apps`,
+     `playbooks`, `skills`, `agents[]` with the same `playbooks`/`skills` lists. No `soul` or `teamBrief` here.
+   - `workers/<id>/BRIEF.md`: what every agent must follow, sent to them verbatim: `## Mission`, `## Working rules`
+     (which skill to use when, approval points) and `## Completion rule`. A rule written only in `worker.yaml`
+     (`description`, `outcomes`) never reaches the bot.
+   - `workers/<id>/souls/<key>.md` for each agent: its own standing prompt, saying to open the main skill when the
+     playbook was not injected.
    - `workers/<id>/skills/<name>/SKILL.md` for each new skill only this worker carries (`skills/<name>/` when it is
      shared): one-line frontmatter fields (`name` = folder, `title`, `description` ≤300,
      `triggers`, `tags` ≤8, `license`, `author`), then the sections *When to use* (with **Not for:**), *Inputs*,
@@ -208,7 +212,7 @@ a list of documents to prepare. It should search the funder's website with Exa."
 
 **Response outline:** Asks the inputs once. Plan: worker `grant-writer` (agent `writer`), skills `read-grant-call`
 (new, main procedure, triggers "grant call, am I eligible, grant application") and reused `find-papers` for prior
-work; app `exa`. After the owner's OK, writes `workers/grant-writer/WORKER.md`, `workers/grant-writer/skills/read-grant-call/SKILL.md` and its `benchmark.yml`,
+work; app `exa`. After the owner's OK, writes `workers/grant-writer/` (`worker.yaml`, `BRIEF.md`, `souls/writer.md`), `workers/grant-writer/skills/read-grant-call/SKILL.md` and its `benchmark.yml`,
 verifies `exa` and `EXA_SEARCH` with one real call, runs `npm test` until `OK:`, attaches
 `dist/packages/grant-writer.json` for the owner to try, shows the diff, then — on "yes" — forks (the owner is not a
 collaborator), creates `dw/grant-writer-new` from `dev`, writes the files to that branch, and opens a pull request

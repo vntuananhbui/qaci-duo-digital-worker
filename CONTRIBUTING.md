@@ -22,11 +22,11 @@ your branch ──PR──► dev ──Publish library──► library-dev ─
 
 | Goal | What to change |
 |---|---|
-| Add a capability | Create the folder `workers/<worker>/skills/<name>/` with `SKILL.md` from [`templates/skill/SKILL.md`](templates/skill/SKILL.md) and `benchmark.yml` from [`templates/skill/benchmark.yml`](templates/skill/benchmark.yml). Add its name under `playbooks:` and/or `skills:` in `workers/<worker>/WORKER.md`, and under the same list of each agent in `agents[]` that should use it, then bump that worker's `release`. A capability no worker carries yet goes in `skills/<name>/`. |
+| Add a capability | Create the folder `workers/<worker>/skills/<name>/` with `SKILL.md` from [`templates/skill/SKILL.md`](templates/skill/SKILL.md) and `benchmark.yml` from [`templates/skill/benchmark.yml`](templates/skill/benchmark.yml). Add its name under `playbooks:` and/or `skills:` in `workers/<worker>/worker.yaml`, and under the same list of each agent in `agents[]` that should use it, then bump that worker's `release`. A capability no worker carries yet goes in `skills/<name>/`. |
 | Improve a skill | Edit its `SKILL.md` (in `workers/<worker>/skills/<name>/`, or `skills/<name>/` when shared), update its `benchmark.yml` if the expected behaviour changed (create one if it has none), and bump the `release` of every worker that carries it (as a playbook or a skill). |
 | Reuse another worker's skill | Move its folder from `workers/<owner>/skills/<name>/` to `skills/<name>/` (`git mv`), then add the name to the second worker. CI refuses a worker that carries another worker's own skill. |
 | Give a worker an app | Add an entry under `apps:` (`slug`, `label`, `reason`, `optional`), and name the app's tools in the `SKILL.md` that uses them. The `slug` is the Composio toolkit slug; see [AGENTS.md](AGENTS.md#declaring-apps-and-mcp-connections) for how to find it, how to name tools, and the checks you must run first. Never add credentials. |
-| Propose a new worker | Create `workers/<id>/WORKER.md` from [`templates/worker.md`](templates/worker.md), list the skills it carries, and add it to the *Available today* table in README.md. |
+| Propose a new worker | Copy [`templates/worker/`](templates/worker/) to `workers/<id>/`: `worker.yaml` (configuration), `BRIEF.md` (what every agent must follow: Mission, Working rules, Completion rule) and `souls/<key>.md` (an agent's own prompt). List the skills it carries, and add it to the *Available today* table in README.md. |
 
 A skill is **one procedure that produces a result**: "verify a reference list", "design the experiments". A worker
 is a **role** that carries several of them: "Literature Surveyor". If you are describing a role, you are writing a
@@ -46,7 +46,7 @@ each matters when you write it:
 - A **`skills:`** entry is always listed in the bot's prompt under *Imported skills* with the path of its
   `SKILL.md`; the bot opens it when the task calls for it. Refer to another skill in a procedure as "open the
   `<name>` skill (read its SKILL.md; the exact path is in your Imported skills list)".
-- A worker's main procedure is best carried as both, and its `soul` should say to open the skill when the playbook
+- A worker's main procedure is best carried as both, and its soul (`souls/<key>.md`) should say to open the skill when the playbook
   was not injected, so a message that misses every trigger still gets the full procedure.
 
 ## Step by step

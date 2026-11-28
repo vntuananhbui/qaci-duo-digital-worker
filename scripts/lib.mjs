@@ -1,5 +1,5 @@
 // Shared rules for QACI Duo Digital Workers and playbooks: parse, validate, scan for secrets and build the library.
-// A playbook is one SKILL.md (one capability); a Digital Worker (workers/<id>/WORKER.md) is one bot that carries playbooks
+// A playbook is one SKILL.md (one capability); a Digital Worker (workers/<id>/, assembled by scripts/worker-files.mjs) is one bot that carries playbooks
 // and, optionally, full embedded skills, MCP connection slots, and per-agent souls (standing system prompts).
 // The checks follow QACI Duo's own parsers (shared/skill-md.ts, shared/package-format.ts).
 // The package shape (team{name,leader,brief}, connections[], skills.entries[], agent.soul) matches QACI Duo's own
@@ -405,7 +405,7 @@ function skillEntry(playbook, source) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Digital Workers: workers/<id>/WORKER.md, one bot each, carrying playbooks, embedded skills, connections and souls.
+// Digital Workers: workers/<id>/ (assembled into one frontmatter + body document by scripts/worker-files.mjs), one bot each, carrying playbooks, embedded skills, connections and souls.
 
 export const WORKER_SECTIONS = ["Mission", "Working rules", "Completion rule"];
 const WORKER_FIELDS = new Set([
@@ -845,13 +845,17 @@ export function buildCatalog(entries) {
   return { format: CATALOG_FORMAT, version: 1, teams };
 }
 
-// Repository layout. A Digital Worker is a folder, workers/<id>/, holding WORKER.md and the skills only it carries
+// Repository layout. A Digital Worker is a folder, workers/<id>/, holding worker.yaml, BRIEF.md, souls/<key>.md
+// (scripts/worker-files.mjs) and the skills only it carries
 // (workers/<id>/skills/<name>/). A skill two or more workers carry, or none, lives in the top-level skills/<name>/.
 // Skill names are unique across both places, because QACI Duo installs a skill by name.
 const LAYOUT_ID = "[a-z0-9][a-z0-9-]*";
 const LAYOUT_SKILL = "[a-z0-9]+(?:-[a-z0-9]+)*";
 const SKILL_DIR = `(?:workers\\/(${LAYOUT_ID})\\/)?skills\\/(${LAYOUT_SKILL})`;
-export const WORKER_FILE = new RegExp(`^workers\\/(${LAYOUT_ID})\\/WORKER\\.md$`);
+export const WORKER_FILE = new RegExp(`^workers\\/(${LAYOUT_ID})\\/worker\\.yaml$`);
+/** The other files of a worker folder (scripts/worker-files.mjs): BRIEF.md, given to every agent, and souls/<key>.md. */
+export const WORKER_BRIEF = new RegExp(`^workers\\/(${LAYOUT_ID})\\/BRIEF\\.md$`);
+export const WORKER_SOUL = new RegExp(`^workers\\/(${LAYOUT_ID})\\/souls\\/([a-z0-9][a-z0-9_-]*)\\.md$`);
 export const SKILL_FILE = new RegExp(`^${SKILL_DIR}\\/SKILL\\.md$`);
 
 /** Where a repository path sits in the layout: the skill it belongs to (`owner` is null for a shared skill), or null. */
@@ -864,11 +868,13 @@ export function skillOf(path) {
 
 const ALLOWED_FILES = [
   WORKER_FILE,
+  WORKER_BRIEF,
+  WORKER_SOUL,
   SKILL_FILE,
   // A skill's benchmark cases, and what a QACI Duo answered on them (scripts/benchmark-lib.mjs).
   new RegExp(`^${SKILL_DIR}\\/benchmark\\.yml$`),
   new RegExp(`^${SKILL_DIR}\\/runs\\/(?:local|dev)\\.json$`),
-  /^templates\/(?:worker\.md|skill\/(?:SKILL\.md|benchmark\.yml))$/,
+  /^templates\/(?:worker\/(?:worker\.yaml|BRIEF\.md|souls\/[a-z0-9][a-z0-9_-]*\.md)|skill\/(?:SKILL\.md|benchmark\.yml))$/,
   /^scripts\/[a-z0-9-]+\.mjs$/,
   /^tests\/[a-z0-9.-]+\.mjs$/,
   // Declarative JSON Schema documenting the hand-written validators above.

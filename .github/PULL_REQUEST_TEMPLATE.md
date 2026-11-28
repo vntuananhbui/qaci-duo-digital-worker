@@ -5,7 +5,7 @@
 ## Checklist
 
 - [ ] This pull request targets `dev` (only a code owner opens `dev` → `main`)
-- [ ] Only files under `workers/<worker>/` (`WORKER.md`, `skills/<name>/SKILL.md`, `benchmark.yml`, `runs/*.json`) and/or shared `skills/<name>/` changed (plus README if a table changed)
+- [ ] Only files under `workers/<worker>/` (`worker.yaml`, `BRIEF.md`, `souls/`, `skills/<name>/SKILL.md`, `benchmark.yml`, `runs/*.json`) and/or shared `skills/<name>/` changed (plus README if a table changed)
 - [ ] `name` matches the folder; `id` matches the file name
 - [ ] The `release` of every affected worker is bumped
 - [ ] The playbook has every section in FORMAT.md, with *Check:* lines and an *Output* template
