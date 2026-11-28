@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 const repoUrl = "https://github.com/vntuananhbui/qaci-duo-digital-worker";
 
 const steps = [
-  ["01", "Fork or branch", "Fork the repository, or create a branch if a code owner (see .github/CODEOWNERS) gave you write access."],
+  ["01", "Branch from dev", "Fork the repository, or create a branch from dev if a code owner (see .github/CODEOWNERS) gave you write access. Read REVIEW_CHECKLIST.md first: it is what your pull request is judged against."],
   ["02", "Write the file(s)", "A new role is a folder, workers/<id>/, copied from templates/worker/: worker.yaml (configuration), BRIEF.md (what every agent must follow) and souls/<key>.md (each agent's own prompt), with each capability it carries in workers/<id>/skills/<name>/SKILL.md (from templates/skill/SKILL.md, with a benchmark.yml), carried as a playbook or a full embedded skill — optionally with more than one agent, each with its own soul, a shared room, and declared MCP connections. Follow FORMAT.md exactly — the folder/file name must match the name/id field inside it."],
-  ["03", "Check it locally, then open a pull request", "npm ci --ignore-scripts, then npm test (and optionally npm run build to see the generated file). Push your branch and open a pull request against main — CI runs the same checks, then a code owner reads the content."],
+  ["03", "Check, try, benchmark, then open a pull request into dev", "npm ci --ignore-scripts, npm test and npm run build; try it in QACI Duo; run each changed skill's benchmark cases (node scripts/benchmark.mjs init <skill> --env local) and paste the answers. Open the pull request against dev: CI validates and an LLM judge scores the benchmark, then a code owner reviews it against the checklist. After the merge it is live on the dev QACI Duo; it reaches production only after it is benchmarked on dev and a code owner promotes dev to main."],
 ];
 
 export default function PublishPage() {
