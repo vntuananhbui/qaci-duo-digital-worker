@@ -11,7 +11,7 @@ const repoUrl = "https://github.com/vntuananhbui/qaci-duo-digital-worker";
 
 const steps = [
   ["01", "Fork or branch", "Fork the repository, or create a branch if a code owner (see .github/CODEOWNERS) gave you write access."],
-  ["02", "Write the file(s)", "A new capability is skills/<name>/SKILL.md, from templates/skill/SKILL.md. A new role is workers/<id>.md, from templates/worker.md, carrying that capability as a playbook or a full embedded skill — optionally with more than one agent, each with its own soul, a shared room, and declared MCP connections. Follow FORMAT.md exactly — the folder/file name must match the name/id field inside it."],
+  ["02", "Write the file(s)", "A new role is a folder, workers/<id>/, with WORKER.md from templates/worker.md and each capability it carries in workers/<id>/skills/<name>/SKILL.md (from templates/skill/SKILL.md, with a benchmark.yml), carried as a playbook or a full embedded skill — optionally with more than one agent, each with its own soul, a shared room, and declared MCP connections. Follow FORMAT.md exactly — the folder/file name must match the name/id field inside it."],
   ["03", "Check it locally, then open a pull request", "npm ci --ignore-scripts, then npm test (and optionally npm run build to see the generated file). Push your branch and open a pull request against main — CI runs the same checks, then a code owner reads the content."],
 ];
 
@@ -40,9 +40,9 @@ export default function PublishPage() {
         <div>
           <span className="section-kicker">A DIGITAL WORKER</span>
           <h2>One role, several playbooks or skills.</h2>
-          <p>workers/&lt;id&gt;.md lists the playbooks and/or skills it carries and (optionally) extra teammates — each with its own soul — a shared room, declared MCP connections, and paused routines — see FORMAT.md.</p>
+          <p>workers/&lt;id&gt;/WORKER.md lists the playbooks and/or skills it carries and (optionally) extra teammates — each with its own soul — a shared room, declared MCP connections, and paused routines — see FORMAT.md.</p>
         </div>
-        <pre><code>{`workers/<id>.md
+        <pre><code>{`workers/<id>/WORKER.md
 ├── name, title, tagline
 ├── outcomes + setupMinutes
 ├── apps (declared, no credentials)

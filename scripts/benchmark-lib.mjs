@@ -1,4 +1,4 @@
-// Skill benchmarks: the rules for skills/<name>/benchmark.yml (the cases), benchmarks/<name>/<env>.json (what a
+// Skill benchmarks: the rules for <skill folder>/benchmark.yml (the cases), <skill folder>/runs/<env>.json (what a
 // QACI Duo answered on those cases, bound to the exact SKILL.md and benchmark.yml it ran with), and the scoring of
 // the LLM judge's verdicts. Pure functions only; scripts/benchmark.mjs does the I/O.
 import { createHash } from "node:crypto";
@@ -19,7 +19,7 @@ export function sha256(text) {
   return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
-/** skills/<name>/benchmark.yml. Returns { benchmark, errors }; `benchmark` is null when it cannot be used. */
+/** <skill folder>/benchmark.yml. Returns { benchmark, errors }; `benchmark` is null when it cannot be used. */
 export function parseBenchmark(raw) {
   const errors = [];
   let doc;
@@ -67,14 +67,14 @@ export function parseBenchmark(raw) {
   return { benchmark: errors.length ? null : { threshold, cases }, errors };
 }
 
-/** benchmarks/<skill>/<env>.json against the SKILL.md and benchmark.yml in this checkout. */
+/** <skill folder>/runs/<env>.json against the SKILL.md and benchmark.yml in this checkout. */
 export function validateRun(run, { skill, env, skillRaw, benchmarkRaw, benchmark }) {
   const errors = [];
   if (!run || typeof run !== "object" || Array.isArray(run)) return ["must be a JSON object"];
   if (run.format !== RUN_FORMAT || run.version !== RUN_VERSION) errors.push(`format must be "${RUN_FORMAT}", version ${RUN_VERSION}`);
   if (run.skill !== skill) errors.push(`skill must be "${skill}"`);
   if (run.env !== env) errors.push(`env must be "${env}" (the file name)`);
-  if (run.skillSha256 !== sha256(skillRaw)) errors.push("skillSha256 does not match skills/<name>/SKILL.md: the skill changed after this run, so run the cases again");
+  if (run.skillSha256 !== sha256(skillRaw)) errors.push("skillSha256 does not match SKILL.md: the skill changed after this run, so run the cases again");
   if (run.benchmarkSha256 !== sha256(benchmarkRaw)) errors.push("benchmarkSha256 does not match benchmark.yml: the cases changed after this run, so run them again");
   if (typeof run.ranAt !== "string" || Number.isNaN(Date.parse(run.ranAt))) errors.push("ranAt must be an ISO date");
   const duo = run.qaciDuo ?? {};

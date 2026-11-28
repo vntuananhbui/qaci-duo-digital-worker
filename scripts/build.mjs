@@ -1,5 +1,6 @@
-// npm run build [-- <dir>]: writes the library QACI Duo reads. The publish workflow runs it after each merge to main
-// and pushes the result to the `library` branch.
+// npm run build [-- <dir>]: writes the library QACI Duo reads. The publish workflow runs it after each merge and pushes
+// the result to `library` (from main) or `library-dev` (from dev). The output is flat (packages/<id>.json,
+// skills/<name>/SKILL.md) whatever the source layout, so QACI Duo never depends on where a file sits in this repository.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -15,8 +16,10 @@ const raw = (path) => `https://github.com/${repository}/raw/library/${path}`;
 
 const paths = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" })
   .split("\0").filter(Boolean);
-const { playbooks, workers, errors } = loadRepository(root, paths);
+const { playbooks: found, workers, errors } = loadRepository(root, paths);
 if (errors.length) throw new Error(`The repository has ${errors.length} problem(s); run npm test`);
+// By name, not by where the file sits (workers/<id>/skills/ or skills/), so moving a skill never changes the output.
+const playbooks = new Map([...found].sort(([a], [b]) => a.localeCompare(b)));
 
 rmSync(out, { recursive: true, force: true });
 const write = (path, content) => {

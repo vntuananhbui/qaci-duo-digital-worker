@@ -2,7 +2,10 @@
 // repository itself never contains a token-shaped string. Fixtures are synthetic (not read from workers/ or
 // skills/) so these tests do not depend on whatever content the repository happens to carry.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { loadRepository } from "../scripts/repo.mjs";
 import { test } from "node:test";
 import {
   buildCatalog, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker,
@@ -226,9 +229,51 @@ test("token-shaped strings are found", () => {
 });
 
 test("only the known layout is allowed", () => {
-  assert.deepEqual(disallowedFiles(["workers/a-b.md", "skills/a-b/SKILL.md", "README.md", "AGENTS.md", "CLAUDE.md", "scripts/lib.mjs", ".github/workflows/validate.yml"]), []);
-  const bad = ["skills/a/run.sh", "skills/a/b/SKILL.md", "skills/Upper/SKILL.md", "workers/x/y.md", "image.png", "packages/a.md"];
+  assert.deepEqual(disallowedFiles([
+    "workers/a-b/WORKER.md", "workers/a-b/skills/c-d/SKILL.md", "skills/a-b/SKILL.md",
+    "README.md", "AGENTS.md", "CLAUDE.md", "scripts/lib.mjs", ".github/workflows/validate.yml",
+  ]), []);
+  const bad = [
+    "workers/a-b.md", "workers/a/worker.md", "workers/a/notes.md", "workers/a/skills/b/run.sh", "workers/a/skills/b/c/SKILL.md",
+    "skills/a/run.sh", "skills/a/b/SKILL.md", "skills/Upper/SKILL.md", "image.png", "packages/a.md",
+  ];
   assert.deepEqual(disallowedFiles(bad), bad);
+});
+
+test("a skill lives with its only worker, or in skills/ when shared; names are unique", () => {
+  const dir = mkdtempSync(join(tmpdir(), "dw-layout-"));
+  const put = (path, content) => {
+    mkdirSync(dirname(join(dir, path)), { recursive: true });
+    writeFileSync(join(dir, path), content);
+  };
+  const skill = (name) => playbook.replace(/^name: sample-playbook$/m, `name: ${name}`);
+  const carrying = (id, names) => worker
+    .replace(/^id: sample-worker$/m, `id: ${id}`)
+    .replace(/^playbooks:\n(?:  - .*\n)+/m, `playbooks:\n${names.map((name) => `  - ${name}`).join("\n")}\n`)
+    .replace(/^skills:\n(?:  - .*\n)+/m, "");
+  try {
+    put("workers/one/WORKER.md", carrying("one", ["own-skill", "shared-skill"]));
+    put("workers/one/skills/own-skill/SKILL.md", skill("own-skill"));
+    put("workers/two/WORKER.md", carrying("two", ["shared-skill"]));
+    put("skills/shared-skill/SKILL.md", skill("shared-skill"));
+    const paths = ["workers/one/WORKER.md", "workers/one/skills/own-skill/SKILL.md", "workers/two/WORKER.md", "skills/shared-skill/SKILL.md"];
+    const ok = loadRepository(dir, paths);
+    assert.deepEqual(ok.errors, []);
+    assert.equal(ok.workers.length, 2);
+    assert.equal(ok.skillDirs.get("own-skill"), "workers/one/skills/own-skill");
+
+    put("workers/two/WORKER.md", carrying("two", ["own-skill"]));
+    has(loadRepository(dir, paths).errors, 'belongs to workers/one/; move it to skills/own-skill/');
+
+    put("workers/two/WORKER.md", carrying("two", ["shared-skill"]));
+    put("workers/two/skills/shared-skill/SKILL.md", skill("shared-skill"));
+    has(loadRepository(dir, [...paths, "workers/two/skills/shared-skill/SKILL.md"]).errors, "must be unique across the repository");
+
+    put("workers/two/skills/stray/SKILL.md", skill("stray"));
+    has(loadRepository(dir, [...paths, "workers/two/skills/stray/SKILL.md"]).errors, 'does not carry "stray"');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("a worker becomes one bot whose skills are its playbooks", () => {

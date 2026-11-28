@@ -5,8 +5,9 @@ Guidance for coding agents (Claude Code, Codex, Cursor and others) working in th
 
 ## What this repository is
 
-The source of the Digital Workers that the QACI Duo app installs. Content is Markdown: `workers/<id>.md` (a bot)
-and `skills/<name>/SKILL.md` (a capability). A merge runs `.github/workflows/publish.yml`, which builds `dist/` and
+The source of the Digital Workers that the QACI Duo app installs. Content is Markdown: a folder per bot, `workers/<id>/` (its
+`WORKER.md` and the skills only it carries, `workers/<id>/skills/<name>/SKILL.md`), and `skills/<name>/SKILL.md` for a
+capability several workers share. A merge runs `.github/workflows/publish.yml`, which builds `dist/` and
 force-pushes it: `dev` to the `library-dev` branch (read by the dev QACI Duo), `main` to the `library` branch (read
 by production). The app reads only those branches (`catalog.json`, `packages/<id>.json`, `skills/<name>/SKILL.md`).
 Pull requests target `dev`; a code owner promotes `dev` to `main`. A change on `main` reaches every user within
@@ -16,10 +17,9 @@ minutes: treat a merge to `main` as a release.
 
 | Path | What it is |
 |---|---|
-| `workers/<id>.md` | One Digital Worker: YAML frontmatter (identity, `release`, `apps`, `playbooks`, `skills`, `agents[]` with `soul`, …) and a body with `## Mission`, `## Working rules`, `## Completion rule` |
-| `skills/<name>/SKILL.md` | One capability. Used as a playbook, a skill, or both, by any worker |
-| `skills/<name>/benchmark.yml` | The skill's benchmark cases and criteria (CONTRIBUTING.md "Benchmark a skill") |
-| `benchmarks/<name>/{local,dev}.json` | What a QACI Duo answered on those cases, bound by SHA-256 to the SKILL.md and benchmark.yml it ran with |
+| `workers/<id>/WORKER.md` | One Digital Worker: YAML frontmatter (identity, `release`, `apps`, `playbooks`, `skills`, `agents[]` with `soul`, …) and a body with `## Mission`, `## Working rules`, `## Completion rule` |
+| `workers/<id>/skills/<name>/` | A skill only this worker carries: `SKILL.md`, `benchmark.yml` (cases, CONTRIBUTING.md "Benchmark a skill"), `runs/{local,dev}.json` (what a QACI Duo answered, bound by SHA-256 to the SKILL.md and benchmark.yml it ran with) |
+| `skills/<name>/` | The same files for a skill two or more workers carry (or none yet). Move a skill here when a second worker needs it; names are unique across both places |
 | `REVIEW_CHECKLIST.md` | The standard every pull request is reviewed against |
 | `templates/` | The starting files for contributors; they must stay valid (CI checks them) |
 | `scripts/lib.mjs` | **Source of truth** for every rule: validators, package builder, catalog, allowed files, secret scan |
@@ -54,7 +54,9 @@ node scripts/benchmark.mjs check --base origin/dev --env any   # every changed s
   Reviewers (not the validator) also expect the sections `# Title`, `## When to use` (with a **Not for:** line),
   `## Inputs`, `## Procedure`, `## Output`, `## Quality checklist`, `## Guardrails`, `## Example`.
 - **Worker:** `id` = file name, semantic `release`, `tagline` ≤160, `description` ≤2,000, `soul` <24,000 bytes,
-  at least one `playbooks` or `skills` entry, every name must exist as `skills/<name>/SKILL.md`.
+  at least one `playbooks` or `skills` entry, every name must exist as the worker's own `workers/<id>/skills/<name>/SKILL.md` or a shared
+  `skills/<name>/SKILL.md`; a worker may not carry another worker's own skill, and a skill in a worker's folder must be
+  carried by that worker.
 - **No secrets or tricks** in any tracked file: tokens, keys, long base64-like strings, piping a download into a
   shell, invisible Unicode. Apps are declared by `slug` only; credentials live in the user's app connections.
 
@@ -92,7 +94,7 @@ A worker reaches outside tools in one of two ways. Pick one per tool.
 | Use for | A service Composio already hosts: Exa, GitHub, Gmail, DeepWiki, cve.now, … | An MCP server you run, such as an internal knowledge base |
 | Fields | `slug`, `label`, `reason`, `optional` | `key`, `label`, `reason`, `mcp: {transport, url, valueNames}` |
 | Who gets it | The whole worker | Only the agents that list its `key` in `agents[].connections` |
-| Example | `workers/literature-surveyor.md` | `workers/adlc.md` (`qaci-data`) |
+| Example | `workers/literature-surveyor/WORKER.md` | `workers/adlc/WORKER.md` (`qaci-data`) |
 
 ### Required: verify before you add an app or a connection
 
@@ -146,7 +148,7 @@ reviewer must not merge a new app or tool name without it.
   `_mcp` toolkit's tools come from its MCP server and show up only through `COMPOSIO_SEARCH_TOOLS`.
 - Tell the bot to load tools once: tool search for `COMPOSIO_SEARCH_TOOLS` and `COMPOSIO_MULTI_EXECUTE_TOOL`, call
   `COMPOSIO_SEARCH_TOOLS` for the toolkits it needs, then run tools through `COMPOSIO_MULTI_EXECUTE_TOOL` in
-  batches. Put the tools in a *Need → Tool* table, as `skills/survey-literature/SKILL.md` does.
+  batches. Put the tools in a *Need → Tool* table, as `workers/literature-surveyor/skills/survey-literature/SKILL.md` does.
 
 ### A `connections:` slot
 

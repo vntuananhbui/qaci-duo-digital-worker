@@ -5,7 +5,7 @@
 //   node scripts/import-from-qaci-duo.mjs <path/to/qaciduo-adlc.json> adlc
 //   node scripts/import-from-qaci-duo.mjs <path/to/qaciduo-app-rebuild.json> craft
 //
-// It writes workers/<id>.md and skills/<skill-name>/SKILL.md for every skill the source package carries, then
+// It writes workers/<id>/WORKER.md and workers/<id>/skills/<skill-name>/SKILL.md for every skill the source package carries, then
 // self-checks the result with this repository's own validateWorker/workerPackage/validatePackage — the same gate
 // `npm test` runs — before anything is written to disk, so a bad source file fails loudly instead of landing.
 //
@@ -127,7 +127,8 @@ function writePlaybookFile(skill) {
     "",
   ].join("\n");
   const content = `${frontmatter}${body.replace(/^\n+/, "\n")}`;
-  const dir = resolve(root, "skills", skill.name);
+  // A ported worker owns its skills: workers/<id>/skills/<name>/ (move one to skills/ when a second worker carries it).
+  const dir = resolve(root, "workers", importKey, "skills", skill.name);
   mkdirSync(dir, { recursive: true });
   writeFileSync(resolve(dir, "SKILL.md"), content);
   return content;
@@ -136,7 +137,7 @@ function writePlaybookFile(skill) {
 const skillsByName = new Map((pkg.skills?.entries ?? []).map((skill) => [skill.name, writePlaybookFile(skill)]));
 console.log(`Wrote ${skillsByName.size} skills/*/SKILL.md file(s).`);
 
-// --- workers/<id>.md: the real agents (keys unchanged, so each agent's own soul's {{agent:<key>}} self-references
+// --- workers/<id>/WORKER.md: the real agents (keys unchanged, so each agent's own soul's {{agent:<key>}} self-references
 // still resolve) plus the worker's own framing from IMPORTS above. `pkg.agents` already has `agent.soul`,
 // `agent.skills` and `agent.connections` in the real shape this repository's workerPackage() also produces, so
 // they carry over directly — nothing here is re-derived or guessed.
@@ -218,7 +219,7 @@ const markdown = `---\n${yamlText}\n---\n\n${body}`;
 const playbookNames = new Set(skillsByName.keys());
 const workerErrors = validateWorker(markdown, importKey, playbookNames);
 if (workerErrors.length) {
-  console.error(`workers/${importKey}.md would be invalid:`);
+  console.error(`workers/${importKey}/WORKER.md would be invalid:`);
   for (const error of workerErrors) console.error(`- ${error}`);
   process.exit(1);
 }
@@ -226,10 +227,11 @@ const parsedPlaybooks = new Map([...skillsByName.entries()].map(([name, raw]) =>
 const generated = workerPackage(markdown, parsedPlaybooks);
 const packageErrors = validatePackage(generated, importKey);
 if (packageErrors.length) {
-  console.error(`The package generated from workers/${importKey}.md would be invalid:`);
+  console.error(`The package generated from workers/${importKey}/WORKER.md would be invalid:`);
   for (const error of packageErrors) console.error(`- ${error}`);
   process.exit(1);
 }
 
-writeFileSync(resolve(root, "workers", `${importKey}.md`), markdown);
-console.log(`Wrote workers/${importKey}.md from ${sourcePath} (release ${pkg.release}).`);
+mkdirSync(resolve(root, "workers", importKey), { recursive: true });
+writeFileSync(resolve(root, "workers", importKey, "WORKER.md"), markdown);
+console.log(`Wrote workers/${importKey}/WORKER.md from ${sourcePath} (release ${pkg.release}).`);

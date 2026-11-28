@@ -68,7 +68,7 @@ These rules are what make a result trustworthy. A result that breaks one of them
 
 | ID | Rule | Source | Method | Severity | Pass when |
 |---|---|---|---|---|---|
-| A-01 | Only `skills/<name>/SKILL.md`, `skills/<name>/benchmark.yml`, `benchmarks/<name>/{local,dev}.json`, `workers/<id>.md`, and README.md (when a table changed) are modified, unless the PR is explicitly a tooling change | PR template | CI+ | MAJOR | Every changed path matches the allowed list, or the PR title starts with `chore:`/`ci:`/`docs:` and touches no worker or skill content |
+| A-01 | Only files under `workers/<id>/` (`WORKER.md`; `skills/<name>/SKILL.md`, `benchmark.yml`, `runs/{local,dev}.json`), shared `skills/<name>/`, and README.md (when a table changed) are modified, unless the PR is explicitly a tooling change | PR template | CI+ | MAJOR | Every changed path matches the allowed list, or the PR title starts with `chore:`/`ci:`/`docs:` and touches no worker or skill content |
 | A-02 | The `release` of **every** worker that carries a changed playbook or skill, or whose own file changed, is bumped | FORMAT.md, CONTRIBUTING.md | CI+ | BLOCKER | For each affected worker, the PR's `release` is a higher semver than the base branch's |
 | A-03 | The bump size matches the change: patch for wording, minor for new capability, major for a removed playbook, app or changed output shape | Convention (semver) | LLM | MINOR | The bump matches the largest change in the diff |
 | A-04 | A new or renamed worker is listed in README's *Available today* table | AGENTS.md | CI+ | MAJOR | The worker's `id` appears in that table |
@@ -100,7 +100,7 @@ See CONTRIBUTING.md "Benchmark a skill". B-01 to B-04 are enforced by the `Bench
 
 | ID | Rule | Source | Method | Severity | Pass when |
 |---|---|---|---|---|---|
-| B-01 | Every skill whose `SKILL.md` or `benchmark.yml` changed has a valid `skills/<name>/benchmark.yml` (3–10 cases, a trigger-miss case, a critical criterion per case, threshold ≥ 0.6) | CONTRIBUTING.md | CI | BLOCKER | `benchmark.mjs check` passes |
+| B-01 | Every skill whose `SKILL.md` or `benchmark.yml` changed has a valid `benchmark.yml` next to it (3–10 cases, a trigger-miss case, a critical criterion per case, threshold ≥ 0.6) | CONTRIBUTING.md | CI | BLOCKER | `benchmark.mjs check` passes |
 | B-02 | A run file is bound by SHA-256 to the exact `SKILL.md` and `benchmark.yml` in the PR, with a full answer for every case | CONTRIBUTING.md | CI | BLOCKER | `benchmark.mjs check` passes |
 | B-03 | The judged score reaches the threshold and no critical criterion fails (two agreeing judge runs, quotes verified in the answer) | CONTRIBUTING.md | CI | BLOCKER | `benchmark.mjs judge` passes |
 | B-04 | Into `main`: the run is on the dev environment, of the `SKILL.md` that `library-dev` publishes, with a conversation link per case | CONTRIBUTING.md | CI | BLOCKER | `--env dev --library-url` check passes |
@@ -109,7 +109,7 @@ See CONTRIBUTING.md "Benchmark a skill". B-01 to B-04 are enforced by the `Bench
 | B-07 | A change to an existing `benchmark.yml` does not weaken it (lower threshold, fewer cases, a critical flag removed, a failing criterion deleted) without a reason in the PR | Convention | LLM | MAJOR | Diff of `benchmark.yml` is neutral or stricter, or the PR explains why |
 | B-08 | Answers are pasted whole and unedited; on dev, a reviewer opens at least one `threadUrl` and it matches | CONTRIBUTING.md | HUMAN | MAJOR | Reviewer confirms in the review |
 
-## P. Skill structure (`skills/<name>/SKILL.md`)
+## P. Skill structure (`SKILL.md`)
 
 | ID | Rule | Source | Method | Severity | Pass when |
 |---|---|---|---|---|---|
@@ -132,7 +132,7 @@ See CONTRIBUTING.md "Benchmark a skill". B-01 to B-04 are enforced by the `Bench
 | P-18 | A helper script is inline in the skill as a code block, not a separate file beside the SKILL.md | AGENTS.md | CI | BLOCKER | |
 | P-14 | Written in English, short sentences, active voice, consistent terms; tells the bot to reply in the owner's language | AGENTS.md, CONTRIBUTING.md | LLM | MINOR | |
 
-## W. Worker (`workers/<id>.md`)
+## W. Worker (`workers/<id>/WORKER.md`)
 
 | ID | Rule | Source | Method | Severity | Pass when |
 |---|---|---|---|---|---|
@@ -146,6 +146,7 @@ See CONTRIBUTING.md "Benchmark a skill". B-01 to B-04 are enforced by the `Bench
 | W-08 | `routines` prompts are safe to run unattended once switched on: no send, publish, delete or spend without an Ask-first step | FORMAT.md, AGENTS.md | LLM | BLOCKER | Every routine that acts outward pauses for approval |
 | W-10 | A playbook or skill added to the worker is also added to `agents[].playbooks` / `agents[].skills` of each agent that should use it | AGENTS.md | LLM | MAJOR | N/A for a worker without `agents` |
 | W-11 | A worker that needs an app says, in its soul or skill, what to do when app access is off (apps start switched off after install) | AGENTS.md | LLM | MAJOR | N/A when no app is declared |
+| W-12 | A skill sits in the folder of its only worker, or in `skills/` when two or more workers carry it; a skill that became shared was moved (with `git mv`), not copied | FORMAT.md | CI | MAJOR | `npm test` passes; no near-identical SKILL.md under two names |
 | W-09 | Not a near-duplicate of an existing worker or playbook | CONTRIBUTING.md | LLM | MAJOR | The reviewer is given the current catalog; no existing entry has the same role and outcomes |
 
 ## T. Tools, apps and connections

@@ -22,10 +22,11 @@ your branch ──PR──► dev ──Publish library──► library-dev ─
 
 | Goal | What to change |
 |---|---|
-| Add a capability | Create `skills/<name>/SKILL.md` from [`templates/skill/SKILL.md`](templates/skill/SKILL.md) and `skills/<name>/benchmark.yml` from [`templates/skill/benchmark.yml`](templates/skill/benchmark.yml). To have a worker carry it, add its name under `playbooks:` and/or `skills:` in `workers/<worker>.md`, and under the same list of each agent in `agents[]` that should use it, then bump that worker's `release`. |
-| Improve a skill | Edit `skills/<name>/SKILL.md`, update its `benchmark.yml` if the expected behaviour changed (create one if it has none), and bump the `release` of every worker that carries it (as a playbook or a skill). |
+| Add a capability | Create the folder `workers/<worker>/skills/<name>/` with `SKILL.md` from [`templates/skill/SKILL.md`](templates/skill/SKILL.md) and `benchmark.yml` from [`templates/skill/benchmark.yml`](templates/skill/benchmark.yml). Add its name under `playbooks:` and/or `skills:` in `workers/<worker>/WORKER.md`, and under the same list of each agent in `agents[]` that should use it, then bump that worker's `release`. A capability no worker carries yet goes in `skills/<name>/`. |
+| Improve a skill | Edit its `SKILL.md` (in `workers/<worker>/skills/<name>/`, or `skills/<name>/` when shared), update its `benchmark.yml` if the expected behaviour changed (create one if it has none), and bump the `release` of every worker that carries it (as a playbook or a skill). |
+| Reuse another worker's skill | Move its folder from `workers/<owner>/skills/<name>/` to `skills/<name>/` (`git mv`), then add the name to the second worker. CI refuses a worker that carries another worker's own skill. |
 | Give a worker an app | Add an entry under `apps:` (`slug`, `label`, `reason`, `optional`), and name the app's tools in the `SKILL.md` that uses them. The `slug` is the Composio toolkit slug; see [AGENTS.md](AGENTS.md#declaring-apps-and-mcp-connections) for how to find it, how to name tools, and the checks you must run first. Never add credentials. |
-| Propose a new worker | Create `workers/<id>.md` from [`templates/worker.md`](templates/worker.md), list the skills it carries, and add it to the *Available today* table in README.md. |
+| Propose a new worker | Create `workers/<id>/WORKER.md` from [`templates/worker.md`](templates/worker.md), list the skills it carries, and add it to the *Available today* table in README.md. |
 
 A skill is **one procedure that produces a result**: "verify a reference list", "design the experiments". A worker
 is a **role** that carries several of them: "Literature Surveyor". If you are describing a role, you are writing a
@@ -34,7 +35,9 @@ files from one to the next.
 
 ### Carried as a playbook, a skill, or both?
 
-Every capability lives in `skills/<name>/SKILL.md`. A worker carries it in one of two ways, and how the app uses
+Every capability is one `SKILL.md`: in the folder of the worker that carries it (`workers/<id>/skills/<name>/`), or
+in `skills/<name>/` when several workers share it (see [FORMAT.md](FORMAT.md#repository-layout)). A worker carries it
+in one of two ways, and how the app uses
 each matters when you write it:
 
 - A **`playbooks:`** entry is injected into the bot's prompt only when the owner's message contains one of its
@@ -80,7 +83,7 @@ npm run build     # writes the generated library to dist/
 
 Required for every skill whose `SKILL.md` or `benchmark.yml` the pull request changes. See
 [Benchmark a skill](#benchmark-a-skill) below. For a pull request into `dev`, a run on your own QACI Duo
-(`benchmarks/<skill>/local.json`) is enough.
+(`runs/local.json` in the skill's folder) is enough.
 
 ### 5. Open a pull request against `dev`
 
@@ -109,7 +112,7 @@ After the merge, `Publish library` rebuilds `library-dev` and the change is live
 1. Install or update the worker on dev from the Templates screen.
 2. Run the benchmark there: `node scripts/benchmark.mjs init <skill> --env dev`, send every case on dev, paste
    each answer and the conversation link (`threadUrl`).
-3. Open a pull request into `dev` that adds `benchmarks/<skill>/dev.json`. CI checks that the run used exactly the
+3. Open a pull request into `dev` that adds `runs/dev.json` in the skill's folder. CI checks that the run used exactly the
    `SKILL.md` that `library-dev` publishes, and judges it.
 
 ### 8. Promotion to production
@@ -124,7 +127,7 @@ when the worker's `release` is higher.
 A benchmark is a small set of real requests with checks a stranger could verify by reading the answer. It proves the
 skill does what it says, keeps doing it after a change, and stays safe.
 
-### Write the cases: `skills/<name>/benchmark.yml`
+### Write the cases: `benchmark.yml` next to the skill's `SKILL.md`
 
 Start from [`templates/skill/benchmark.yml`](templates/skill/benchmark.yml).
 
@@ -154,7 +157,7 @@ Good criteria are observable in the answer text:
 node scripts/benchmark.mjs init <skill> --env local     # or --env dev on the dev environment
 ```
 
-This writes `benchmarks/<skill>/<env>.json`, already bound (by SHA-256) to the current `SKILL.md` and
+This writes `runs/<env>.json` in the skill's folder, already bound (by SHA-256) to the current `SKILL.md` and
 `benchmark.yml`. Then, for each case:
 
 1. Start a **new** conversation with the worker in QACI Duo and send the case's `input` exactly as written.

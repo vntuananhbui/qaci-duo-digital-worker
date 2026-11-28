@@ -2,13 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/vanhaito/qaci-duo-playbooks/main/schema/playbook.schema.json",
   "title": "QACI Duo playbook (SKILL.md frontmatter)",
-  "description": "The YAML frontmatter of skills/<name>/SKILL.md, as checked by validatePlaybook() in scripts/lib.mjs. This schema documents that hand-written validator; scripts/lib.mjs remains the source of truth and the authoritative CI gate — this is tooling/editor documentation only. Every field is read from exactly one `key: value` line (QACI Duo's Skills library does not read YAML lists or multi-line values): a comma-separated string stands in for a JSON array below. The body below the frontmatter (not modelled here) must be 100-24000 characters and is also checked for hidden-instruction tricks (long base64-like runs, `curl | sh`, invisible Unicode). See FORMAT.md.",
+  "description": "The YAML frontmatter of workers/<id>/skills/<name>/SKILL.md or skills/<name>/SKILL.md, as checked by validatePlaybook() in scripts/lib.mjs. This schema documents that hand-written validator; scripts/lib.mjs remains the source of truth and the authoritative CI gate — this is tooling/editor documentation only. Every field is read from exactly one `key: value` line (QACI Duo's Skills library does not read YAML lists or multi-line values): a comma-separated string stands in for a JSON array below. The body below the frontmatter (not modelled here) must be 100-24000 characters and is also checked for hidden-instruction tricks (long base64-like runs, `curl | sh`, invisible Unicode). See FORMAT.md.",
   "type": "object",
   "required": ["name", "title", "description", "triggers", "license", "author"],
   "properties": {
     "name": {
       "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 64,
-      "description": "Must equal the folder name skills/<name>/."
+      "description": "Must equal the skill's folder name <name>."
     },
     "title": { "type": "string", "minLength": 1, "maxLength": 100 },
     "description": { "type": "string", "minLength": 1, "maxLength": 300 },

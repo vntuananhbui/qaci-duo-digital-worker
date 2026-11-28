@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 const principles = [
-  ["01", "One capability per file, two ways to carry it", "skills/<name>/SKILL.md is one procedure. A worker (workers/<id>.md) carries it as a lightweight playbook (trigger + instructions) or embeds the whole file as a real skill — either way, the same file can be shared across workers."],
+  ["01", "One capability per file, two ways to carry it", "A worker is a folder, workers/<id>/: its WORKER.md and the skills only it carries (skills/<name>/SKILL.md inside it); a skill several workers share lives in the top-level skills/<name>/. A worker carries each skill as a lightweight playbook (trigger + instructions) or embeds the whole file as a real skill — either way, the same file can be shared across workers."],
   ["02", "A worker can be a small team, not just one bot", "Optionally more than one agent, each with its own standing soul, a shared room to coordinate in, and declared MCP connections — a slot and a reason, never a credential, and only handed to the specific agent that needs it."],
   ["03", "CI checks it before a human does", "node scripts/validate.mjs rejects an unknown field, a missing section, a secret-shaped string, and common ways to hide instructions (long base64-like runs, curl | sh, invisible Unicode) — before a reviewer ever reads it."],
   ["04", "A code owner reads the content", "Is each step specific enough to repeat? Does the worker ask for its inputs before guessing? Does evidence stay separate from inference? Do sending, submitting, deleting and costly actions wait for approval?"],
@@ -31,8 +31,8 @@ export default function MethodologyPage() {
 
       <section className="package-anatomy">
         <div><span className="section-kicker">THE PIPELINE</span><h2>Pull request &rarr; published.</h2><p>Every step runs the same two commands a contributor runs locally first: npm test, then npm run build.</p></div>
-        <pre><code>{`workers/<id>.md
-skills/<name>/SKILL.md
+        <pre><code>{`workers/<id>/WORKER.md + skills/<name>/SKILL.md
+skills/<name>/SKILL.md   (shared)
   │
   ├── npm test        (CI: validate.yml)
   │     format, layout, secrets,

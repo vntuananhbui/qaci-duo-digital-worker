@@ -1,7 +1,7 @@
 // Skill benchmarks. See CONTRIBUTING.md "Benchmark a skill".
 //
 //   node scripts/benchmark.mjs init <skill> --env local|dev
-//       Writes benchmarks/<skill>/<env>.json: a blank run bound to the current SKILL.md and benchmark.yml.
+//       Writes <skill folder>/runs/<env>.json: a blank run bound to the current SKILL.md and benchmark.yml.
 //   node scripts/benchmark.mjs check --base <git ref> --env local|dev|any [--library-url <url>]
 //       For every skill the branch changed since <base>: benchmark.yml is valid and a run file matches the exact
 //       SKILL.md and benchmark.yml. --env dev also needs the run's SKILL.md to be the one the dev library published.
@@ -9,9 +9,10 @@
 //       check, then has an LLM judge every case's answer against its criteria; exits 1 below threshold.
 //       Needs ANTHROPIC_API_KEY (or another credential the Anthropic SDK reads); BENCH_JUDGE_MODEL overrides the model.
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { skillOf } from "./lib.mjs";
 import { ENVIRONMENTS, blankRun, parseBenchmark, scoreCase, scoreSkill, sha256, validateRun } from "./benchmark-lib.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -30,10 +31,22 @@ const fail = (message) => {
   process.exit(1);
 };
 
+/** The folder of skill <name>: workers/<id>/skills/<name> for a worker's own skill, skills/<name> for a shared one. */
+function skillDir(name) {
+  if (exists(`skills/${name}/SKILL.md`)) return `skills/${name}`;
+  for (const id of exists("workers") ? readdirSync(join(root, "workers")) : []) {
+    if (exists(`workers/${id}/skills/${name}/SKILL.md`)) return `workers/${id}/skills/${name}`;
+  }
+  return null;
+}
+
+const runPath = (skill, env) => `${skillDir(skill)}/runs/${env}.json`;
+
 function loadSkill(skill) {
-  const skillPath = `skills/${skill}/SKILL.md`;
-  const benchmarkPath = `skills/${skill}/benchmark.yml`;
-  if (!exists(skillPath)) return { errors: [`${skillPath} does not exist`] };
+  const dir = skillDir(skill);
+  if (!dir) return { errors: [`no skill named "${skill}" (looked in workers/*/skills/ and skills/)`] };
+  const skillPath = `${dir}/SKILL.md`;
+  const benchmarkPath = `${dir}/benchmark.yml`;
   if (!exists(benchmarkPath)) return { errors: [`${benchmarkPath} is missing: every changed skill needs a benchmark (CONTRIBUTING.md "Benchmark a skill")`] };
   const skillRaw = read(skillPath);
   const benchmarkRaw = read(benchmarkPath);
@@ -46,8 +59,8 @@ function changedSkills(base) {
   const out = execFileSync("git", ["diff", "--name-only", `${base}...HEAD`], { cwd: root, encoding: "utf8" });
   const names = new Set();
   for (const path of out.split("\n")) {
-    const match = /^skills\/([^/]+)\/(?:SKILL\.md|benchmark\.yml)$/.exec(path) ?? /^benchmarks\/([^/]+)\/[^/]+\.json$/.exec(path);
-    if (match && exists(`skills/${match[1]}/SKILL.md`)) names.add(match[1]);
+    const skill = skillOf(path);
+    if (skill && skillDir(skill.name)) names.add(skill.name);
   }
   return [...names].sort();
 }
@@ -67,7 +80,7 @@ async function checkSkill(skill, wanted, libraryUrl) {
   const candidates = wanted === "any" ? ["dev", "local"] : [wanted];
   const problems = [];
   for (const env of candidates) {
-    const path = `benchmarks/${skill}/${env}.json`;
+    const path = runPath(skill, env);
     if (!exists(path)) {
       problems.push(`${path} is missing`);
       continue;
@@ -149,9 +162,9 @@ async function main() {
     if (!skill || !ENVIRONMENTS.includes(env)) fail("usage: node scripts/benchmark.mjs init <skill> --env local|dev");
     const loaded = loadSkill(skill);
     if (loaded.errors.length) fail(loaded.errors.join("\n"));
-    const path = `benchmarks/${skill}/${env}.json`;
+    const path = runPath(skill, env);
     if (exists(path) && !flags.force) fail(`${path} exists; pass --force to start it again`);
-    mkdirSync(join(root, "benchmarks", skill), { recursive: true });
+    mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), `${JSON.stringify(blankRun({ skill, env, ...loaded }), null, 2)}\n`);
     console.log(`Wrote ${path}. Send each case's input to the worker, paste each full answer into "output"${env === "dev" ? " and the conversation link into \"threadUrl\"" : ""}, and set qaciDuo.model.`);
     return;

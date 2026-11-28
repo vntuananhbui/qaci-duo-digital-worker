@@ -1,6 +1,7 @@
 ---
 # QACI Duo Digital Worker template. A Digital Worker is one bot that carries playbooks from skills/.
-# Copy this file to workers/<your-worker>.md and set `id` to the file name.
+# Copy this file to workers/<your-worker>/WORKER.md and set `id` to the folder name. Put the skills only this
+# worker carries in workers/<your-worker>/skills/<name>/; a skill other workers also carry lives in skills/<name>/.
 id: your-worker
 release: 1.0.0
 name: Your Worker

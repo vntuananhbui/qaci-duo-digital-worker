@@ -1,6 +1,28 @@
 # File format
 
-## Playbook — `skills/<name>/SKILL.md`
+## Repository layout
+
+```
+workers/
+  <id>/
+    WORKER.md                  the Digital Worker (below)
+    skills/
+      <name>/                  a skill only this worker carries
+        SKILL.md
+        benchmark.yml          its benchmark cases (CONTRIBUTING.md "Benchmark a skill")
+        runs/local.json        what a QACI Duo answered on them
+        runs/dev.json
+skills/
+  <name>/                      a skill two or more workers carry, or none yet; same files as above
+```
+
+- A skill lives in the folder of the **only** worker that carries it. When a second worker needs it, move the folder
+  to `skills/<name>/` (CI refuses a worker that carries another worker's own skill).
+- Skill names are unique across `workers/*/skills/` and `skills/`, because QACI Duo installs a skill by name.
+- A worker refers to a skill by name only (`playbooks:` / `skills:`); where the folder sits does not change the
+  generated library, which stays flat (`packages/<id>.json`, `skills/<name>/SKILL.md`).
+
+## Skill — `workers/<id>/skills/<name>/SKILL.md` or `skills/<name>/SKILL.md`
 
 A standard [SKILL.md](https://agentskills.io) with a few extra fields. QACI Duo's Skills library reads each
 frontmatter field from **one line**, so do not use YAML lists or multi-line values: separate list items with commas,
@@ -33,13 +55,13 @@ The body is the procedure, at most 24,000 characters, with these sections:
 CI refuses unknown fields, long base64-like strings, `curl … | sh`, invisible Unicode characters, and anything that
 looks like a secret.
 
-## Digital Worker — `workers/<id>.md`
+## Digital Worker — `workers/<id>/WORKER.md`
 
 YAML frontmatter followed by a Markdown body.
 
 | Field | Required | Meaning |
 |---|---|---|
-| `id` | yes | Equal to the file name |
+| `id` | yes | Equal to the folder name `workers/<id>/` |
 | `release` | yes | Semantic version such as `1.0.0`; bump it whenever the worker or one of its playbooks or skills changes. Published in `catalog.json`; QACI Duo offers an installed copy the update when this is higher |
 | `name`, `title` | yes | Worker name and role |
 | `tagline` | yes | One sentence, at most 160 characters; shown on the Templates card |
@@ -47,8 +69,8 @@ YAML frontmatter followed by a Markdown body.
 | `category`, `license`, `author.name` | yes | |
 | `color` | yes | `green`, `blue`, `red`, `orange`, `purple`, `cyan`, `pink`, `yellow`, `teal` or `coral` |
 | `outcomes` | yes | 1–12 results the user gets |
-| `playbooks` | one of `playbooks`/`skills` | 1–30 folder names from `skills/`, carried as lightweight trigger+instructions |
-| `skills` | one of `playbooks`/`skills` | 1–30 folder names from `skills/`, each embedded whole as a real, importable skill — see below |
+| `playbooks` | one of `playbooks`/`skills` | 1–30 skill names (the worker's own `workers/<id>/skills/<name>/` or a shared `skills/<name>/`), carried as lightweight trigger+instructions |
+| `skills` | one of `playbooks`/`skills` | 1–30 skill names (own or shared, as above), each embedded whole as a real, importable skill — see below |
 | `apps` | no | Composio apps the worker can use: `slug` (the exact Composio toolkit slug, lowercase, such as `exa` or `deepwiki_mcp` — see [AGENTS.md](AGENTS.md#declaring-apps-and-mcp-connections) for how to check it), `label`, `reason`, `optional`. Declared only, never with credentials. **Add an app only after its slug, every tool name the playbook uses, and one real call have been verified** ([AGENTS.md](AGENTS.md#required-verify-before-you-add-an-app-or-a-connection)) |
 | `tags`, `featured`, `setupMinutes` | no | `featured: true` lists the worker first |
 | `soul` | no | This worker's own standing system prompt, under 24,000 bytes. Optional; without it the worker runs on `description` alone, as before |
@@ -60,7 +82,7 @@ A worker needs at least one `playbooks` or `skills` entry (or both); a playbook 
 across different workers. The body needs three sections: `## Mission`, `## Working rules` (including which
 playbook/skill to use when) and `## Completion rule`.
 
-### Playbook vs. skill: the same `skills/<name>/SKILL.md` file, two ways to carry it
+### Playbook vs. skill: the same `SKILL.md` file, two ways to carry it
 
 A `playbooks:` entry becomes a lightweight trigger + instructions pair in the generated package
 (`package.playbooks[]`) — enough for most capabilities. A `skills:` entry embeds the **whole SKILL.md file**
@@ -99,7 +121,7 @@ frontmatter `format: qaci-duo.package` / `version: 2`) whose agents are the work
 declares, carrying the worker's playbooks and skills, with any `connections`, `rooms` and `routines` it declares,
 under a `team: {name, leader, brief}` object. It also writes the `catalog.json` (`format: qaci-duo.catalog`) that
 QACI Duo reads (each entry names its `package`, `packages/<id>.json`, and its `release`), each worker's team manifest (`teams/<id>/team.mausteam.json`, `format: qaci-duo.team`), and a copy
-of every `skills/<name>/SKILL.md` (playbook or skill) for individual import.
+of every skill's `SKILL.md` at `skills/<name>/SKILL.md` (wherever it sits in this repository) for individual import.
 
 It also writes `packages/<id>.json` — the **same content**, wrapped as the real QACI Duo app actually reads it
 today: `{format: "openmaus.package", version: 2, package: {...}}`. This is the file to use for the app's

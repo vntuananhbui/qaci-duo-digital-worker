@@ -85,8 +85,11 @@ test("a skill fails on any critical failure even with a high average", () => {
 });
 
 test("the layout allows benchmark files only where they belong", () => {
-  assert.deepEqual(disallowedFiles(["skills/a-b/benchmark.yml", "benchmarks/a-b/dev.json", "benchmarks/a-b/local.json", "templates/skill/benchmark.yml", "REVIEW_CHECKLIST.md"]), []);
-  const bad = ["skills/a/benchmark.json", "benchmarks/a/prod.json", "benchmarks/a/b/dev.json", "skills/a/bench.yml"];
+  assert.deepEqual(disallowedFiles([
+    "skills/a-b/benchmark.yml", "skills/a-b/runs/dev.json", "workers/w/skills/a-b/benchmark.yml", "workers/w/skills/a-b/runs/local.json",
+    "templates/skill/benchmark.yml", "REVIEW_CHECKLIST.md",
+  ]), []);
+  const bad = ["skills/a/benchmark.json", "skills/a/runs/prod.json", "benchmarks/a/dev.json", "workers/w/runs/dev.json", "skills/a/bench.yml"];
   assert.deepEqual(disallowedFiles(bad), bad);
   assert.equal(sha256("x").length, 64);
 });

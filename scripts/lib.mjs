@@ -1,5 +1,5 @@
 // Shared rules for QACI Duo Digital Workers and playbooks: parse, validate, scan for secrets and build the library.
-// A playbook is one SKILL.md (one capability); a Digital Worker (workers/<id>.md) is one bot that carries playbooks
+// A playbook is one SKILL.md (one capability); a Digital Worker (workers/<id>/WORKER.md) is one bot that carries playbooks
 // and, optionally, full embedded skills, MCP connection slots, and per-agent souls (standing system prompts).
 // The checks follow QACI Duo's own parsers (shared/skill-md.ts, shared/package-format.ts).
 // The package shape (team{name,leader,brief}, connections[], skills.entries[], agent.soul) matches QACI Duo's own
@@ -405,7 +405,7 @@ function skillEntry(playbook, source) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Digital Workers: workers/<id>.md, one bot each, carrying playbooks, embedded skills, connections and souls.
+// Digital Workers: workers/<id>/WORKER.md, one bot each, carrying playbooks, embedded skills, connections and souls.
 
 export const WORKER_SECTIONS = ["Mission", "Working rules", "Completion rule"];
 const WORKER_FIELDS = new Set([
@@ -433,7 +433,7 @@ export function section(body, heading) {
 export function validateWorker(markdown, slug, playbookNames) {
   const errors = [];
   const fail = (message) => errors.push(message);
-  if (!SLUG.test(slug)) fail(`the file name "${slug}.md" must use lowercase letters, digits and hyphens`);
+  if (!SLUG.test(slug)) fail(`the folder name "workers/${slug}/" must use lowercase letters, digits and hyphens`);
   let worker;
   let body;
   try {
@@ -479,7 +479,7 @@ export function validateWorker(markdown, slug, playbookNames) {
   if ((worker.playbooks?.length ?? 0) + (worker.skills?.length ?? 0) === 0) fail("a worker needs at least one playbook or skill (playbooks: or skills:)");
   const seen = new Set();
   for (const name of [...(worker.playbooks ?? []), ...new Set(worker.skills ?? [])]) {
-    if (!playbookNames.has(name)) fail(`"${name}" does not exist as skills/${name}/SKILL.md`);
+    if (!playbookNames.has(name)) fail(`"${name}" does not exist as workers/${slug}/skills/${name}/SKILL.md or skills/${name}/SKILL.md`);
   }
   for (const name of worker.playbooks ?? []) {
     if (seen.has(name)) fail(`playbook "${name}" is listed twice`);
@@ -845,12 +845,29 @@ export function buildCatalog(entries) {
   return { format: CATALOG_FORMAT, version: 1, teams };
 }
 
+// Repository layout. A Digital Worker is a folder, workers/<id>/, holding WORKER.md and the skills only it carries
+// (workers/<id>/skills/<name>/). A skill two or more workers carry, or none, lives in the top-level skills/<name>/.
+// Skill names are unique across both places, because QACI Duo installs a skill by name.
+const LAYOUT_ID = "[a-z0-9][a-z0-9-]*";
+const LAYOUT_SKILL = "[a-z0-9]+(?:-[a-z0-9]+)*";
+const SKILL_DIR = `(?:workers\\/(${LAYOUT_ID})\\/)?skills\\/(${LAYOUT_SKILL})`;
+export const WORKER_FILE = new RegExp(`^workers\\/(${LAYOUT_ID})\\/WORKER\\.md$`);
+export const SKILL_FILE = new RegExp(`^${SKILL_DIR}\\/SKILL\\.md$`);
+
+/** Where a repository path sits in the layout: the skill it belongs to (`owner` is null for a shared skill), or null. */
+export function skillOf(path) {
+  const match = new RegExp(`^${SKILL_DIR}\\/(SKILL\\.md|benchmark\\.yml|runs\\/(?:local|dev)\\.json)$`).exec(path);
+  if (!match) return null;
+  const [, owner = null, name, file] = match;
+  return { owner, name, dir: owner ? `workers/${owner}/skills/${name}` : `skills/${name}`, file };
+}
+
 const ALLOWED_FILES = [
-  /^workers\/[a-z0-9][a-z0-9-]*\.md$/,
-  /^skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/SKILL\.md$/,
+  WORKER_FILE,
+  SKILL_FILE,
   // A skill's benchmark cases, and what a QACI Duo answered on them (scripts/benchmark-lib.mjs).
-  /^skills\/[a-z0-9]+(?:-[a-z0-9]+)*\/benchmark\.yml$/,
-  /^benchmarks\/[a-z0-9]+(?:-[a-z0-9]+)*\/(?:local|dev)\.json$/,
+  new RegExp(`^${SKILL_DIR}\\/benchmark\\.yml$`),
+  new RegExp(`^${SKILL_DIR}\\/runs\\/(?:local|dev)\\.json$`),
   /^templates\/(?:worker\.md|skill\/(?:SKILL\.md|benchmark\.yml))$/,
   /^scripts\/[a-z0-9-]+\.mjs$/,
   /^tests\/[a-z0-9.-]+\.mjs$/,

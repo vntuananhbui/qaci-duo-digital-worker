@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { MAX_CATALOG_BYTES, buildCatalog, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker, workerLibraryFiles, workerPackage } from "./lib.mjs";
+import { MAX_CATALOG_BYTES, buildCatalog, skillOf, disallowedFiles, readPlaybook, scanSecrets, splitPackage, validatePackage, validatePlaybook, validateWorker, workerLibraryFiles, workerPackage } from "./lib.mjs";
 import { loadRepository } from "./repo.mjs";
 import { parseBenchmark } from "./benchmark-lib.mjs";
 
@@ -15,15 +15,23 @@ function trackedFiles() {
     const out = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" });
     return out.split("\0").filter(Boolean);
   } catch {
-    const workers = readdirSync(join(root, "workers")).map((name) => `workers/${name}`);
-    const playbooks = readdirSync(join(root, "skills")).map((name) => `skills/${name}/SKILL.md`);
-    return [...workers, ...playbooks];
+    const ids = readdirSync(join(root, "workers"));
+    const workers = ids.map((id) => `workers/${id}/WORKER.md`);
+    const own = ids.flatMap((id) => {
+      try {
+        return readdirSync(join(root, "workers", id, "skills")).map((name) => `workers/${id}/skills/${name}/SKILL.md`);
+      } catch {
+        return [];
+      }
+    });
+    const shared = readdirSync(join(root, "skills")).map((name) => `skills/${name}/SKILL.md`);
+    return [...workers, ...own, ...shared];
   }
 }
 
 const files = trackedFiles();
 for (const path of disallowedFiles(files)) {
-  errors.push(`${path}: this file is not allowed (a Digital Worker lives in workers/<id>.md, a playbook in skills/<name>/SKILL.md)`);
+  errors.push(`${path}: this file is not allowed (a Digital Worker is workers/<id>/WORKER.md; its own skills are workers/<id>/skills/<name>/, shared skills are skills/<name>/)`);
 }
 for (const path of files) {
   let content;
@@ -44,7 +52,7 @@ errors.push(...contentErrors);
 
 // The templates must stay valid so a contributor always starts from a file that passes.
 // Every benchmark.yml present must be valid; whether a changed skill has one is scripts/benchmark.mjs check's job.
-for (const path of files.filter((file) => /^(?:skills\/[^/]+|templates\/skill)\/benchmark\.yml$/.test(file))) {
+for (const path of files.filter((file) => skillOf(file)?.file === "benchmark.yml" || file === "templates/skill/benchmark.yml")) {
   let raw;
   try {
     raw = readFileSync(join(root, path), "utf8");

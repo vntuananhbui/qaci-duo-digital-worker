@@ -1,7 +1,7 @@
 ---
 name: build-digital-worker
 title: Build or edit a Digital Worker
-description: Turn an owner's idea for a new Digital Worker, or a change to an existing one, into files that pass the library's checks, try them, and open a pull request to main for review. Never pushes to main.
+description: Turn an owner's idea for a new Digital Worker, or a change to an existing one, into files and a benchmark that pass the library's checks, try them, and open a pull request to dev for review. Never pushes to dev or main.
 triggers: create a digital worker, new digital worker, build a digital worker, edit a digital worker, update a digital worker, change my digital worker, create a dw, new dw, edit dw, make my own worker, add a skill to a worker, publish a worker
 tags: digital-worker, authoring, github, pull-request
 license: Unspecified
@@ -11,9 +11,10 @@ author: QACI Duo
 # Build or edit a Digital Worker
 
 Takes the owner from "I want a bot that does X" (or "change how worker Y does Z") to a reviewed pull request
-against `main` of the Digital Worker library, `vntuananhbui/qaci-duo-digital-worker`. The files follow the
-library's own rules, pass `npm test`, and have been tried before anyone reviews them. Users get the change only
-after a code owner merges the pull request; this skill never writes to `main`.
+against `dev` of the Digital Worker library, `vntuananhbui/qaci-duo-digital-worker`. The files follow the
+library's own rules, pass `npm test`, carry a benchmark, and have been tried before anyone reviews them. The change
+reaches the dev QACI Duo after a code owner merges it into `dev`, and production only after a code owner promotes
+`dev` to `main`; this skill never writes to `dev` or `main`.
 
 ## When to use
 
@@ -53,18 +54,18 @@ Ask once, all questions together. When an answer is missing, use the default and
 | Who the owner is on GitHub | `GITHUB_GET_THE_AUTHENTICATED_USER` |
 | Can they write to the library | `GITHUB_CHECK_IF_A_USER_IS_A_REPOSITORY_COLLABORATOR` (`owner`, `repo`, `username`) |
 | A copy they can write to | `GITHUB_CREATE_A_FORK` (`owner`, `repo`) |
-| The commit `main` points at | `GITHUB_GET_A_REFERENCE` (`owner`, `repo`, `ref: "heads/main"`) |
+| The commit `dev` points at | `GITHUB_GET_A_REFERENCE` (`owner`, `repo`, `ref: "heads/dev"`) |
 | A new branch | `GITHUB_CREATE_A_REFERENCE` (`owner`, `repo`, `ref: "refs/heads/<branch>"`, `sha`) |
 | An existing file's `sha` on the branch | `GITHUB_GET_REPOSITORY_CONTENT` (`owner`, `repo`, `path`, `ref: <branch>`) |
 | Add or change a file | `GITHUB_CREATE_OR_UPDATE_FILE_CONTENTS` (`owner`, `repo`, `path`, `message`, `content` in Base64, `branch`, plus `sha` when the file exists) |
 | Remove a file | `GITHUB_DELETE_A_FILE` (`owner`, `repo`, `path`, `message`, `sha`, `branch`) |
-| The pull request | `GITHUB_CREATE_A_PULL_REQUEST` (`owner`, `repo`, `base: "main"`, `head`, `title`, `body`, plus `head_repo` from a fork) |
+| The pull request | `GITHUB_CREATE_A_PULL_REQUEST` (`owner`, `repo`, `base: "dev"`, `head`, `title`, `body`, plus `head_repo` from a fork) |
 | An open pull request already exists? | `GITHUB_LIST_PULL_REQUESTS` (`owner`, `repo`, `head`, `state: "open"`) |
 
 **`GITHUB_CREATE_OR_UPDATE_FILE_CONTENTS` and `GITHUB_DELETE_A_FILE` write to `main` when `branch` is left out.**
-Every call must pass `branch` set to the branch you created, and that branch is never `main`.
+Every call must pass `branch` set to the branch you created, and that branch is never `main` or `dev`.
 
-If a tool is missing or fails, say so and stop at that step; never work around it by writing to `main`.
+If a tool is missing or fails, say so and stop at that step; never work around it by writing to `main` or `dev`.
 
 ## Procedure
 
@@ -72,8 +73,11 @@ If a tool is missing or fails, say so and stop at that step; never work around i
    `git clone --depth 1 https://github.com/vntuananhbui/qaci-duo-digital-worker.git dw-library && cd dw-library`.
    Read `AGENTS.md`, `FORMAT.md`, `CONTRIBUTING.md`, `templates/worker.md` and `templates/skill/SKILL.md` in full:
    they are the current rules and override anything in this skill that disagrees.
-   For a change, also read `workers/<id>.md` and every `skills/<name>/SKILL.md` it carries.
-   *Check:* `ls workers playbooks` — note every existing skill you could reuse instead of writing a new one.
+   For a change, also read `workers/<id>/WORKER.md` and every skill it carries (in `workers/<id>/skills/` or the
+   shared `skills/`).
+   *Check:* `ls workers/*/skills skills` — note every existing skill you could reuse instead of writing a new one.
+   Reusing a skill that sits in another worker's folder means moving it to `skills/<name>/` (`git mv`) in the same
+   pull request.
 2. **Ask the inputs** (table above), once.
 3. **Plan, then stop and ask.** Show the owner a short plan before writing anything:
    - the worker `id` (lowercase, hyphens), name, title and agent key;
@@ -84,12 +88,17 @@ If a tool is missing or fails, say so and stop at that step; never work around i
    - for a change: every file that changes, and the new `release`.
    Wait for the owner's OK. A skill shared by other workers changes them too: name them and bump their `release`.
 4. **Write the files**, starting from the templates, following `FORMAT.md` and `AGENTS.md` exactly:
-   - `workers/<id>.md`: frontmatter (`id` = file name, `release`, `tagline` ≤160, `description` ≤2,000, `apps`,
+   - `workers/<id>/WORKER.md`: frontmatter (`id` = folder name, `release`, `tagline` ≤160, `description` ≤2,000, `apps`,
      `playbooks`, `skills`, `agents[]` with a `soul` that says to open the main skill when it was not injected, and
      the same `playbooks`/`skills` lists), then `## Mission`, `## Working rules`, `## Completion rule`.
-   - `skills/<name>/SKILL.md`: one-line frontmatter fields (`name` = folder, `title`, `description` ≤300,
+   - `workers/<id>/skills/<name>/SKILL.md` for each new skill only this worker carries (`skills/<name>/` when it is
+     shared): one-line frontmatter fields (`name` = folder, `title`, `description` ≤300,
      `triggers`, `tags` ≤8, `license`, `author`), then the sections *When to use* (with **Not for:**), *Inputs*,
      *Procedure* (numbered, with *Check:* lines), *Output*, *Quality checklist*, *Guardrails*, *Example*.
+   - `benchmark.yml` next to every new or changed `SKILL.md`, from `templates/skill/benchmark.yml`: 3–10 real
+     requests from the owner's own work, at least one that contains no trigger phrase (`matchesTrigger: false`), and
+     criteria a stranger can check from the answer alone, with the never-go-wrong ones marked `critical: true`
+     (invented sources, acting without approval). Follow CONTRIBUTING.md *Benchmark a skill*.
    - Refer to another skill as "open the `<name>` skill (read its SKILL.md; the exact path is in your Imported
      skills list)". Name every app tool exactly, and say what to do when it is missing.
    - Routines, when the owner wants scheduled runs, go in the worker's `routines:` (see FORMAT.md): `runOn: duo`
@@ -111,10 +120,12 @@ If a tool is missing or fails, say so and stop at that step; never work around i
 6. **Run the checks.** `npm ci --ignore-scripts && npm test && npm run build`. Fix every reported problem and run
    again until it ends with `OK:` and every test passes.
    *Check:* `dist/packages/<id>.json` exists.
-7. **Try it.** Attach `dist/packages/<id>.json` with `attach_file` and ask the owner to import it (Templates →
-   import a file), turn on its apps, and send two requests: one that contains a trigger phrase and one that does
-   not. Ask what came back. If the owner cannot try it now, say the pull request is untested and continue only if
-   they agree.
+7. **Try it and run the benchmark.** Attach `dist/packages/<id>.json` with `attach_file` and ask the owner to import
+   it (Templates → import a file) and turn on its apps. For each changed skill run
+   `node scripts/benchmark.mjs init <skill> --env local`, then ask the owner to send each case's `input` in a new
+   conversation and paste back the full answer and the model used; write them into `runs/local.json` unedited.
+   *Check:* `node scripts/benchmark.mjs check --base origin/dev --env any` passes after you commit locally. Without
+   answers the pull request cannot pass CI: say so, and continue only if the owner will add them later.
 8. **Show the change, then stop and ask.** Show `git status --short`, `git diff --stat`, the pull request title and
    the filled description (Output below). Open the pull request only after the owner says yes.
 9. **Open the pull request** (upstream `owner: "vntuananhbui"`, `repo: "qaci-duo-digital-worker"`):
@@ -122,7 +133,7 @@ If a tool is missing or fails, say so and stop at that step; never work around i
    2. `GITHUB_CHECK_IF_A_USER_IS_A_REPOSITORY_COLLABORATOR` with that `login`. A collaborator writes to the upstream
       repository; anyone else calls `GITHUB_CREATE_A_FORK` and writes to `<login>/qaci-duo-digital-worker`.
       Call the repository you write to the *target*.
-   3. `GITHUB_GET_A_REFERENCE` on the target with `ref: "heads/main"` → `sha`. Branch name:
+   3. `GITHUB_GET_A_REFERENCE` on the target with `ref: "heads/dev"` → `sha`. Branch name:
       `dw/<id>-<short-change>` (for example `dw/grant-writer-new`). Check `GITHUB_LIST_PULL_REQUESTS` for an open
       pull request from that branch first; if one exists, update that branch instead of creating another.
    4. `GITHUB_CREATE_A_REFERENCE` on the target: `ref: "refs/heads/<branch>"`, that `sha`.
@@ -130,12 +141,12 @@ If a tool is missing or fails, say so and stop at that step; never work around i
       get its `sha` with `GITHUB_GET_REPOSITORY_CONTENT` (`ref: <branch>`); then
       `GITHUB_CREATE_OR_UPDATE_FILE_CONTENTS` with `branch: <branch>` and a message in English, imperative mood.
       For each removed file: `GITHUB_DELETE_A_FILE` with `branch: <branch>`.
-   6. `GITHUB_CREATE_A_PULL_REQUEST` on the upstream repository: `base: "main"`, `head: "<branch>"` (or
+   6. `GITHUB_CREATE_A_PULL_REQUEST` on the upstream repository: `base: "dev"`, `head: "<branch>"` (or
       `"<login>:<branch>"` with `head_repo: "<login>/qaci-duo-digital-worker"` from a fork), the title and body.
-   *Check:* the response shows `base` = `main`, `head` = your branch, and the files you planned and no others.
+   *Check:* the response shows `base` = `dev`, `head` = your branch, and the files you planned and no others.
 10. **Deliver.** Reply with the pull request link, what a reviewer will check (CONTRIBUTING.md *What reviewers look
     for*), and anything left: untested parts, apps under "To verify". Say plainly that users get the change only
-    after a code owner merges it.
+    after a code owner merges it into `dev` (dev environment) and later promotes it to `main` (production).
 
 ## Output
 
@@ -147,11 +158,13 @@ retractions"). Body, following the library's `.github/PULL_REQUEST_TEMPLATE.md`:
 <Which worker and skills, and what a user can now get done.>
 
 ## Checklist
-- [x] Only `skills/<name>/SKILL.md` and/or `workers/<worker>.md` changed (plus README if a table changed)
-- [x] `name` matches the folder; `id` matches the file name
+- [x] This pull request targets `dev`
+- [x] Only files under `workers/<worker>/` and/or shared `skills/<name>/` changed (plus README if a table changed)
+- [x] `name` matches the folder; `id` matches the worker's folder name
 - [x] The `release` of every affected worker is bumped
 - [x] The playbook has every section in FORMAT.md, with *Check:* lines and an *Output* template
 - [x] `npm test` passes
+- [ ] Every changed skill has a `benchmark.yml` and a `runs/local.json` that `benchmark.mjs check` accepts   ← tick only if step 7 produced the answers
 - [ ] Tried in QACI Duo            ← tick only if step 7 happened
 - [ ] New or changed app / connection / tool name verified   ← tick only if step 5 passed for each
 
@@ -168,17 +181,17 @@ retractions"). Body, following the library's `.github/PULL_REQUEST_TEMPLATE.md`:
 
 - [ ] The owner approved the plan (step 3) and the change (step 8) before the pull request was opened.
 - [ ] `npm test` ends with `OK:` and no failing test.
-- [ ] Every write call passed `branch` set to the new branch; nothing was written to `main`.
-- [ ] The pull request's base is `main`, its head is the new branch, and it lists only the planned files.
+- [ ] Every write call passed `branch` set to the new branch; nothing was written to `main` or `dev`.
+- [ ] The pull request's base is `dev`, its head is the new branch, and it lists only the planned files.
 - [ ] Every app slug and tool name in the files was verified; unverified ones are listed, not added.
 - [ ] Every affected worker's `release` is bumped, including workers that share a changed skill.
 
 ## Guardrails
 
 **Never**
-- Push, commit or write a file to `main`, call `GITHUB_UPDATE_A_REFERENCE` on `main`, or force-push anything.
+- Push, commit or write a file to `main` or `dev`, call `GITHUB_UPDATE_A_REFERENCE` on either, or force-push anything.
 - Merge, approve or close a pull request, or edit the `library` branch: a code owner merges and a workflow publishes.
-- Call a file-writing tool without `branch`, or with `branch: "main"`.
+- Call a file-writing tool without `branch`, or with `branch: "main"` or `branch: "dev"`.
 - Ask for a GitHub token or password in chat, or put any credential, key or personal data in a file.
 - Add an app, connection or tool name that was not verified in step 5.
 - Change a worker or skill the owner did not ask to change.
@@ -195,8 +208,9 @@ a list of documents to prepare. It should search the funder's website with Exa."
 
 **Response outline:** Asks the inputs once. Plan: worker `grant-writer` (agent `writer`), skills `read-grant-call`
 (new, main procedure, triggers "grant call, am I eligible, grant application") and reused `find-papers` for prior
-work; app `exa`. After the owner's OK, writes `workers/grant-writer.md` and `skills/read-grant-call/SKILL.md`,
+work; app `exa`. After the owner's OK, writes `workers/grant-writer/WORKER.md`, `workers/grant-writer/skills/read-grant-call/SKILL.md` and its `benchmark.yml`,
 verifies `exa` and `EXA_SEARCH` with one real call, runs `npm test` until `OK:`, attaches
 `dist/packages/grant-writer.json` for the owner to try, shows the diff, then — on "yes" — forks (the owner is not a
-collaborator), creates `dw/grant-writer-new`, writes both files to that branch, and opens a pull request to `main`.
-Replies with the link and notes that users get the worker only after a code owner merges it.
+collaborator), creates `dw/grant-writer-new` from `dev`, writes the files to that branch, and opens a pull request
+to `dev`. Replies with the link and notes that the worker reaches the dev environment after a code owner merges it,
+and production only after it is benchmarked on dev and promoted to `main`.
